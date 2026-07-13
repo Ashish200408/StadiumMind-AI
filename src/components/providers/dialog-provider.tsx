@@ -8,6 +8,7 @@ type DialogState = {
   closeDialog: () => void;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useDialogStore = create<DialogState>((set) => ({
   isOpen: false,
   content: null,
