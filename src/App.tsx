@@ -28,6 +28,9 @@ import { ROLES } from '@/config/roles';
 // Providers
 import { AuthProvider } from '@/contexts/auth-context';
 
+// Features
+import { CommandCenterPage } from '@/features/command-center';
+
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex h-[80vh] flex-col items-center justify-center p-8 text-center">
     <h1 className="text-3xl font-bold">{title}</h1>
@@ -61,7 +64,7 @@ const router = createBrowserRouter([
           },
           {
             path: ROUTES.AI_COMMAND,
-            element: <PlaceholderPage title="AI Command Center" />,
+            element: <CommandCenterPage />,
           },
           {
             path: ROUTES.CROWD,
