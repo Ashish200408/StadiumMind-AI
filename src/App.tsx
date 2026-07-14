@@ -28,8 +28,8 @@ import { ROLES } from '@/config/roles';
 // Providers
 import { AuthProvider } from '@/contexts/auth-context';
 
-// Features
-import { CommandCenterPage } from '@/features/command-center';
+import { EmergencyIntelligencePage } from '@/features/emergency-intelligence';
+import { CopilotPage } from '@/features/ai-copilot';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex h-[80vh] flex-col items-center justify-center p-8 text-center">
@@ -64,7 +64,7 @@ const router = createBrowserRouter([
           },
           {
             path: ROUTES.AI_COMMAND,
-            element: <CommandCenterPage />,
+            element: <CopilotPage />,
           },
           {
             path: ROUTES.CROWD,
@@ -88,7 +88,7 @@ const router = createBrowserRouter([
           },
           {
             path: ROUTES.EMERGENCY,
-            element: <PlaceholderPage title="Emergency Response" />,
+            element: <EmergencyIntelligencePage />,
           },
           {
             path: ROUTES.REPORTS,
