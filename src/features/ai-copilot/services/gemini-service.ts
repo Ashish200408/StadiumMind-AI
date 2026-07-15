@@ -110,9 +110,14 @@ export const callGemini = async (prompt: string, signal?: AbortSignal): Promise<
   throw new Error('Unexpected execution path in GeminiService');
 };
 
+import { logger } from '../../../utils/logger';
+
 const logMetrics = (metrics: AILogMetrics) => {
-  // In a real app, this would send to Datadog/NewRelic/etc.
-  console.log('[AI Observability]', metrics);
+  logger.log(
+    'gemini_request',
+    `Gemini API Request: ${metrics.cacheHit ? 'Cache Hit' : 'Cache Miss'}`,
+    metrics
+  );
 };
 
 const logErrorMetrics = (reqTime: string, startTime: number, prompt: string, errorCat: string) => {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { AppLayout } from '@/layouts/app-layout';
 import { AuthLayout } from '@/layouts/auth-layout';
@@ -6,6 +6,7 @@ import { DashboardLayout } from '@/layouts/dashboard-layout';
 import { ErrorPage } from '@/pages/error-page';
 import { NotFoundPage } from '@/pages/not-found-page';
 import { NoPermissionPage } from '@/pages/no-permission-page';
+import { EnvValidator } from '@/components/common/EnvValidator';
 
 // Auth Pages
 import { LoginPage } from '@/pages/auth/login';
@@ -17,6 +18,7 @@ import { SessionExpiredPage } from '@/pages/auth/session-expired';
 // App Pages
 import { ProfilePage } from '@/pages/profile';
 import { SettingsPage } from '@/pages/settings';
+import { HealthDashboard } from '@/pages/health/HealthDashboard';
 
 // Common
 import { ProtectedRoute } from '@/components/common/protected-route';
@@ -28,8 +30,20 @@ import { ROLES } from '@/config/roles';
 // Providers
 import { AuthProvider } from '@/contexts/auth-context';
 
-import { EmergencyIntelligencePage } from '@/features/emergency-intelligence';
-import { CopilotPage } from '@/features/ai-copilot';
+// Lazy load major features
+const EmergencyIntelligencePage = lazy(() =>
+  import('@/features/emergency-intelligence').then((module) => ({
+    default: module.EmergencyIntelligencePage,
+  }))
+);
+const CopilotPage = lazy(() =>
+  import('@/features/ai-copilot').then((module) => ({ default: module.CopilotPage }))
+);
+const ExecutiveDashboard = lazy(() =>
+  import('@/features/executive-intelligence').then((module) => ({
+    default: module.ExecutiveDashboard,
+  }))
+);
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex h-[80vh] flex-col items-center justify-center p-8 text-center">
@@ -37,6 +51,12 @@ const PlaceholderPage = ({ title }: { title: string }) => (
     <p className="mt-2 text-muted-foreground">
       Module UI shell created. Business logic will be implemented in future phases.
     </p>
+  </div>
+);
+
+const LoadingFallback = () => (
+  <div className="flex h-screen items-center justify-center bg-slate-950">
+    <div className="w-8 h-8 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
   </div>
 );
 
@@ -60,11 +80,19 @@ const router = createBrowserRouter([
           },
           {
             path: ROUTES.DASHBOARD,
-            element: <PlaceholderPage title="Main Dashboard" />,
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <ExecutiveDashboard />
+              </Suspense>
+            ),
           },
           {
             path: ROUTES.AI_COMMAND,
-            element: <CopilotPage />,
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <CopilotPage />
+              </Suspense>
+            ),
           },
           {
             path: ROUTES.CROWD,
@@ -88,7 +116,11 @@ const router = createBrowserRouter([
           },
           {
             path: ROUTES.EMERGENCY,
-            element: <EmergencyIntelligencePage />,
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <EmergencyIntelligencePage />
+              </Suspense>
+            ),
           },
           {
             path: ROUTES.REPORTS,
@@ -97,6 +129,10 @@ const router = createBrowserRouter([
           {
             path: ROUTES.PROFILE,
             element: <ProfilePage />,
+          },
+          {
+            path: '/health',
+            element: <HealthDashboard />,
           },
           {
             path: ROUTES.SETTINGS,
@@ -182,9 +218,11 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <EnvValidator>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </EnvValidator>
   );
 }
 
