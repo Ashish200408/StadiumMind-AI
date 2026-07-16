@@ -1,11 +1,9 @@
-import { useNavigationEngine } from '../hooks/useNavigationEngine';
 import { NavigationSummary } from './NavigationSummary';
 import { RouteCards } from './RouteCards';
 import { ActiveRouteDetails } from './ActiveRouteDetails';
 import { useNavigationStore } from '../store/navigation-store';
 
 export function NavigationDashboard() {
-  useNavigationEngine();
   const lastCalculated = useNavigationStore((state) => state.lastCalculated);
 
   return (

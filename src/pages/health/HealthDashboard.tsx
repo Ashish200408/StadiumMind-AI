@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useIntelligenceCoreStore } from '@/features/intelligence-core/store/intelligence-core-store';
-import { useSimulation } from '@/features/simulation/hooks/use-simulation';
+import { useSimulationStore } from '@/features/simulation/store/simulation-store';
 
 export const HealthDashboard: React.FC = () => {
   const { unifiedData } = useIntelligenceCoreStore();
-  const { isRunning } = useSimulation();
+  const { isRunning } = useSimulationStore();
 
   const [healthStatus, setHealthStatus] = useState({
     buildVersion: import.meta.env.VITE_APP_VERSION || '1.0.0',

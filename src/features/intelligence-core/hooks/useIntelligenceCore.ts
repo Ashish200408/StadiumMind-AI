@@ -5,6 +5,8 @@ import { useMobilityStore } from '../../mobility-intelligence/store/mobility-sto
 import { useAccessibilityStore } from '../../accessibility-intelligence/store/accessibility-store';
 import { useSustainabilityStore } from '../../sustainability-intelligence/store/sustainability-store';
 import { useEmergencyStore } from '../../emergency-intelligence/store/emergency-store';
+import { useNavigationStore } from '../../navigation-intelligence/store/navigation-store';
+import { useSimulationStore } from '../../simulation/store/simulation-store';
 
 export const useIntelligenceCore = () => {
   useEffect(() => {
@@ -36,6 +38,14 @@ export const useIntelligenceCore = () => {
       triggerAggregation();
     });
 
+    const unsubNavigation = useNavigationStore.subscribe(() => {
+      triggerAggregation();
+    });
+
+    const unsubSimulation = useSimulationStore.subscribe(() => {
+      triggerAggregation();
+    });
+
     // Alternatively, setting up a polling interval for fallback aggregation
     const interval = setInterval(() => {
       triggerAggregation();
@@ -47,6 +57,8 @@ export const useIntelligenceCore = () => {
       unsubAccessibility();
       unsubSustainability();
       unsubEmergency();
+      unsubNavigation();
+      unsubSimulation();
       clearInterval(interval);
     };
   }, []);

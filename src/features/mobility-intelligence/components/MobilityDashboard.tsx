@@ -1,11 +1,9 @@
-import { useMobilityEngine } from '../hooks/useMobilityEngine';
 import { MobilitySummary } from './MobilitySummary';
 import { MobilityAlerts } from './MobilityAlerts';
 import { MobilityRecommendations } from './MobilityRecommendations';
 import { useMobilityStore } from '../store/mobility-store';
 
 export function MobilityDashboard() {
-  useMobilityEngine();
   const lastUpdated = useMobilityStore((state) => state.lastUpdated);
   const metrics = useMobilityStore((state) => state.metrics);
 

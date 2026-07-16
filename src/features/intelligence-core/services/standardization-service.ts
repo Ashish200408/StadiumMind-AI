@@ -5,6 +5,7 @@ import { useMobilityStore } from '../../mobility-intelligence/store/mobility-sto
 import { useAccessibilityStore } from '../../accessibility-intelligence/store/accessibility-store';
 import { useSustainabilityStore } from '../../sustainability-intelligence/store/sustainability-store';
 import { useEmergencyStore } from '../../emergency-intelligence/store/emergency-store';
+import { useNavigationStore } from '../../navigation-intelligence/store/navigation-store';
 
 export const mapCrowdToStandard = (): StandardizedModule => {
   try {
@@ -164,6 +165,28 @@ export const mapEmergencyToStandard = (): StandardizedModule => {
     };
   } catch {
     return getFallbackModule('Emergency Intelligence');
+  }
+};
+
+export const mapNavigationToStandard = (): StandardizedModule => {
+  try {
+    const state: any = useNavigationStore.getState();
+    return {
+      moduleName: 'Navigation Intelligence',
+      healthScore: 90, // Navigation might not have a direct health score
+      riskLevel: 'Low',
+      confidenceScore: 95,
+      status: 'Active',
+      metrics: {
+        activeRoutes: state.activeRoute ? 1 : 0,
+        nodes: Object.keys(state.nodes || {}).length,
+      },
+      recommendations: state.recommendations?.map((r: any) => r.reason || r.type) || [],
+      alerts: [],
+      lastUpdated: new Date().toISOString(),
+    };
+  } catch {
+    return getFallbackModule('Navigation Intelligence');
   }
 };
 

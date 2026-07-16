@@ -1,5 +1,4 @@
 import React from 'react';
-import { useEmergencyEngine } from '../hooks/useEmergencyEngine';
 import { EmergencySummary } from './EmergencySummary';
 import { ActiveIncidentsPanel } from './ActiveIncidentsPanel';
 import { EmergencyTimeline } from './EmergencyTimeline';
@@ -11,8 +10,6 @@ import { ResourceAvailabilityPanel } from './ResourceAvailabilityPanel';
 import { IncidentDependencyVisualizer } from './IncidentDependencyVisualizer';
 
 export const EmergencyDashboard: React.FC = () => {
-  useEmergencyEngine(); // Initialize monitoring loop
-
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="mb-8">

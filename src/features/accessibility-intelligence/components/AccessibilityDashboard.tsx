@@ -1,11 +1,9 @@
-import { useAccessibilityEngine } from '../hooks/useAccessibilityEngine';
 import { AccessibilitySummary } from './AccessibilitySummary';
 import { AccessibilityAlerts } from './AccessibilityAlerts';
 import { AccessibilityRecommendations } from './AccessibilityRecommendations';
 import { useAccessibilityStore } from '../store/accessibility-store';
 
 export function AccessibilityDashboard() {
-  useAccessibilityEngine();
   const lastUpdated = useAccessibilityStore((state) => state.lastUpdated);
 
   return (

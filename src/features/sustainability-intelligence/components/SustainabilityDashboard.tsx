@@ -1,11 +1,9 @@
-import { useSustainabilityEngine } from '../hooks/useSustainabilityEngine';
 import { SustainabilitySummary } from './SustainabilitySummary';
 import { EnvironmentalAlerts } from './EnvironmentalAlerts';
 import { SustainabilityRecommendations } from './SustainabilityRecommendations';
 import { useSustainabilityStore } from '../store/sustainability-store';
 
 export function SustainabilityDashboard() {
-  useSustainabilityEngine();
   const lastUpdated = useSustainabilityStore((state) => state.lastUpdated);
 
   return (

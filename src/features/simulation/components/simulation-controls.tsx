@@ -1,11 +1,17 @@
 import React from 'react';
-import { useSimulation } from '../hooks/use-simulation';
+import { useSimulationStore } from '../store/simulation-store';
 import { Play, Pause, RotateCcw, FastForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function SimulationControls() {
-  const { isRunning, startSimulation, pauseSimulation, resetSimulation, speed, setSpeed } =
-    useSimulation();
+  const {
+    isRunning,
+    start: startSimulation,
+    pause: pauseSimulation,
+    reset: resetSimulation,
+    speed,
+    setSpeed,
+  } = useSimulationStore();
 
   return (
     <div className="flex items-center gap-2 rounded-lg border bg-card p-2 shadow-sm">

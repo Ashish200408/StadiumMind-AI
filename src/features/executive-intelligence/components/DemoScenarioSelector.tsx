@@ -1,9 +1,9 @@
 import React from 'react';
-import { useSimulation } from '../../simulation/hooks/use-simulation';
+import { useSimulationStore } from '../../simulation/store/simulation-store';
 import { Incident } from '../../simulation/types';
 
 export const DemoScenarioSelector: React.FC = () => {
-  const { updateIncidents, updateEnvironment, environment, incidents } = useSimulation();
+  const { updateIncidents, updateEnvironment, environment, incidents } = useSimulationStore();
 
   const handleScenarioChange = (scenario: string) => {
     switch (scenario) {

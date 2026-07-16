@@ -1,4 +1,3 @@
-import { useIntelligenceEngine } from '../hooks/useIntelligenceEngine';
 import { MetricsCards } from './MetricsCards';
 import { RecommendationPanel } from './RecommendationPanel';
 import { DetectionsList } from './DetectionsList';
@@ -6,7 +5,6 @@ import { useIntelligenceStore } from '../store/intelligence-store';
 
 export function CrowdIntelligenceDashboard() {
   // Initialize the intelligence engine (subscribes to simulation)
-  useIntelligenceEngine();
 
   const lastAnalyzed = useIntelligenceStore((state) => state.lastAnalyzed);
 

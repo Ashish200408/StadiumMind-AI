@@ -44,14 +44,30 @@ const ExecutiveDashboard = lazy(() =>
     default: module.ExecutiveDashboard,
   }))
 );
-
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="flex h-[80vh] flex-col items-center justify-center p-8 text-center">
-    <h1 className="text-3xl font-bold">{title}</h1>
-    <p className="mt-2 text-muted-foreground">
-      Module UI shell created. Business logic will be implemented in future phases.
-    </p>
-  </div>
+const CrowdIntelligencePage = lazy(() =>
+  import('@/features/crowd-intelligence').then((module) => ({
+    default: module.CrowdIntelligencePage,
+  }))
+);
+const NavigationIntelligencePage = lazy(() =>
+  import('@/features/navigation-intelligence').then((module) => ({
+    default: module.NavigationIntelligencePage,
+  }))
+);
+const MobilityIntelligencePage = lazy(() =>
+  import('@/features/mobility-intelligence').then((module) => ({
+    default: module.MobilityIntelligencePage,
+  }))
+);
+const AccessibilityIntelligencePage = lazy(() =>
+  import('@/features/accessibility-intelligence').then((module) => ({
+    default: module.AccessibilityIntelligencePage,
+  }))
+);
+const SustainabilityIntelligencePage = lazy(() =>
+  import('@/features/sustainability-intelligence').then((module) => ({
+    default: module.SustainabilityIntelligencePage,
+  }))
 );
 
 const LoadingFallback = () => (
@@ -76,7 +92,11 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <PlaceholderPage title="Overview Dashboard" />,
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <ExecutiveDashboard />
+              </Suspense>
+            ),
           },
           {
             path: ROUTES.DASHBOARD,
@@ -96,23 +116,43 @@ const router = createBrowserRouter([
           },
           {
             path: ROUTES.CROWD,
-            element: <PlaceholderPage title="Crowd Intelligence" />,
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <CrowdIntelligencePage />
+              </Suspense>
+            ),
           },
           {
             path: ROUTES.NAVIGATION,
-            element: <PlaceholderPage title="Smart Navigation" />,
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <NavigationIntelligencePage />
+              </Suspense>
+            ),
           },
           {
             path: ROUTES.TRANSPORT,
-            element: <PlaceholderPage title="Transport Optimization" />,
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <MobilityIntelligencePage />
+              </Suspense>
+            ),
           },
           {
             path: ROUTES.ACCESSIBILITY,
-            element: <PlaceholderPage title="Accessibility" />,
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <AccessibilityIntelligencePage />
+              </Suspense>
+            ),
           },
           {
             path: ROUTES.SUSTAINABILITY,
-            element: <PlaceholderPage title="Sustainability Metrics" />,
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <SustainabilityIntelligencePage />
+              </Suspense>
+            ),
           },
           {
             path: ROUTES.EMERGENCY,
@@ -124,7 +164,11 @@ const router = createBrowserRouter([
           },
           {
             path: ROUTES.REPORTS,
-            element: <PlaceholderPage title="Automated Reports" />,
+            element: (
+              <Suspense fallback={<LoadingFallback />}>
+                <ExecutiveDashboard />
+              </Suspense>
+            ),
           },
           {
             path: ROUTES.PROFILE,
@@ -157,7 +201,9 @@ const router = createBrowserRouter([
             path: '/admin',
             element: (
               <RoleGuard allowedRoles={[ROLES.ADMINISTRATOR]}>
-                <PlaceholderPage title="Admin Panel" />
+                <Suspense fallback={<LoadingFallback />}>
+                  <ExecutiveDashboard />
+                </Suspense>
               </RoleGuard>
             ),
           },
@@ -216,10 +262,13 @@ const router = createBrowserRouter([
   },
 ]);
 
+import { EngineInitializer } from '@/components/common/EngineInitializer';
+
 function App() {
   return (
     <EnvValidator>
       <AuthProvider>
+        <EngineInitializer />
         <RouterProvider router={router} />
       </AuthProvider>
     </EnvValidator>

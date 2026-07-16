@@ -19,6 +19,7 @@ interface IntelligenceCoreState {
   updateGlobalRecommendations: (recommendations: GlobalRecommendation[]) => void;
   updateSnapshots: (snapshots: ExecutiveSnapshot) => void;
   updateEventTimeline: (events: GlobalEvent[]) => void;
+  updateUnifiedData: (data: Partial<UnifiedIntelligence>) => void;
 }
 
 const initialScores: OverallScores = {
@@ -90,6 +91,14 @@ export const useIntelligenceCoreStore = create<IntelligenceCoreState>((set) => (
       unifiedData: {
         ...state.unifiedData,
         eventTimeline: events,
+      },
+    })),
+
+  updateUnifiedData: (data) =>
+    set((state) => ({
+      unifiedData: {
+        ...state.unifiedData,
+        ...data,
       },
     })),
 }));

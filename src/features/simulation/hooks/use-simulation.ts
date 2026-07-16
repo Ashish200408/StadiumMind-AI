@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useSimulationStore } from '../store/simulation-store';
 import { simulationEngine } from '../services/simulation-service';
 
-export function useSimulation() {
+export function useSimulationEngine() {
   const store = useSimulationStore();
 
   useEffect(() => {

@@ -10,6 +10,7 @@ import {
   mapAccessibilityToStandard,
   mapSustainabilityToStandard,
   mapEmergencyToStandard,
+  mapNavigationToStandard,
 } from './standardization-service';
 
 export const triggerAggregation = () => {
@@ -22,30 +23,31 @@ export const triggerAggregation = () => {
     'Accessibility Intelligence': mapAccessibilityToStandard(),
     'Sustainability Intelligence': mapSustainabilityToStandard(),
     'Emergency Intelligence': mapEmergencyToStandard(),
+    'Navigation Intelligence': mapNavigationToStandard(),
   };
-
-  // Update modules in store
-  Object.values(modules).forEach((mod) => {
-    store.updateModule(mod.moduleName, mod);
-  });
 
   // 2. Orchestrate Calculations (Health Score Engine)
   const overallScores = calculateOverallScores(modules);
-  store.updateOverallScores(overallScores);
 
   // 3. Orchestrate Alert Merging
   const globalAlerts = mergeAlerts(modules);
-  store.updateGlobalAlerts(globalAlerts);
 
   // 4. Orchestrate Recommendations
   const globalRecommendations = mergeRecommendations(modules);
-  store.updateGlobalRecommendations(globalRecommendations);
 
   // 5. Orchestrate Snapshots
   const snapshots = generateSnapshots(modules);
-  store.updateSnapshots(snapshots);
 
   // 6. Orchestrate Event Timeline
   const globalTimeline = mergeTimelines();
-  store.updateEventTimeline(globalTimeline);
+
+  // Update all data at once to prevent multiple re-renders
+  store.updateUnifiedData({
+    modules,
+    overallScores,
+    globalAlerts,
+    globalRecommendations,
+    snapshots,
+    eventTimeline: globalTimeline,
+  });
 };
