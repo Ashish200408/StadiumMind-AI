@@ -1,4 +1,5 @@
 import { useEmergencyStore } from '../store/emergency-store';
+import { useSimulationStore } from '../../simulation/store/simulation-store';
 import { generateRecommendations } from './recommendation-service';
 import { logEvent } from './event-logger';
 import {
@@ -8,48 +9,63 @@ import {
   OperationalImpactScore,
 } from '../types';
 
-// Mock dependencies on other stores to avoid actual imports failing if they don't exist perfectly
-// In a real scenario, we would import useSimulationStore, useCrowdStore, etc.
-const evaluateConditions = () => {
-  // Simulating detection logic based on random thresholds for demonstration.
-  // In a real system, this would read from other Zustands.
-  const randomFactor = Math.random();
+export const evaluateConditions = () => {
+  const simulationState = useSimulationStore.getState();
+  const emergencyStore = useEmergencyStore.getState();
 
-  if (randomFactor > 0.95) {
-    const types: EmergencyType[] = [
-      'Medical',
-      'Security',
-      'Fire',
-      'Overcrowding',
-      'Evacuation',
-      'Power',
-      'Water',
-      'Infrastructure',
-      'Weather',
-      'Transport',
-    ];
-    const type = types[Math.floor(Math.random() * types.length)];
+  // 1. Resolve incidents that no longer exist in the simulation store
+  emergencyStore.incidents.forEach((inc) => {
+    if (
+      !simulationState.incidents[inc.id] &&
+      inc.lifecycleState !== 'Closed' &&
+      inc.lifecycleState !== 'Resolved'
+    ) {
+      emergencyStore.updateIncidentStatus(inc.id, 'Resolved');
+    }
+  });
 
-    const severities: EmergencySeverity[] = ['Low', 'Medium', 'High', 'Critical'];
-    const severity = severities[Math.floor(Math.random() * severities.length)];
+  // 2. Sync Simulation Incidents to Emergency Incidents
+  Object.values(simulationState.incidents).forEach((simIncident) => {
+    // Only process if it doesn't already exist in emergency store
+    if (!emergencyStore.incidents.find((inc) => inc.id === simIncident.id)) {
+      const typeMap: Record<string, EmergencyType> = {
+        security: 'Security',
+        facility: 'Infrastructure',
+        medical: 'Medical',
+      };
 
-    triggerIncident(type, severity, `Zone ${Math.floor(Math.random() * 10) + 1}`);
-  }
+      const type: EmergencyType = typeMap[simIncident.category] || 'Infrastructure';
+
+      let severity: EmergencySeverity = 'Low';
+      if (simIncident.severity === 'critical') severity = 'Critical';
+      else if (simIncident.severity === 'high') severity = 'High';
+      else if (simIncident.severity === 'medium') severity = 'Medium';
+
+      triggerIncident(
+        type,
+        severity,
+        simIncident.location.name,
+        simIncident.id,
+        simIncident.description
+      );
+    }
+  });
 };
 
 export const triggerIncident = (
   type: EmergencyType,
   severity: EmergencySeverity,
-  location: string
+  location: string,
+  id: string,
+  description: string
 ) => {
   const store = useEmergencyStore.getState();
-  const id = `inc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   const impact: OperationalImpactScore = {
-    crowdOperations: Math.floor(Math.random() * 100),
-    mobility: Math.floor(Math.random() * 100),
-    accessibility: Math.floor(Math.random() * 100),
-    sustainability: Math.floor(Math.random() * 100),
+    crowdOperations: severity === 'Critical' ? 90 : severity === 'High' ? 70 : 40,
+    mobility: severity === 'Critical' ? 85 : severity === 'High' ? 60 : 30,
+    accessibility: severity === 'Critical' ? 95 : severity === 'High' ? 75 : 50,
+    sustainability: severity === 'Critical' ? 60 : severity === 'High' ? 40 : 20,
     overall: 0,
   };
   impact.overall = Math.round(

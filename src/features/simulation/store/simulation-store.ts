@@ -52,14 +52,14 @@ const initialState: Omit<SimulationState, 'isRunning' | 'speed'> = {
 };
 
 export const useSimulationStore = create<SimulationStore>((set) => ({
-  isRunning: false,
+  isRunning: true,
   speed: 1, // 1x normal speed, could be increased for faster simulation
   ...initialState,
 
   start: () => set({ isRunning: true }),
   pause: () => set({ isRunning: false }),
   resume: () => set({ isRunning: true }),
-  reset: () => set({ isRunning: false, ...initialState }),
+  reset: () => set({ isRunning: true, ...initialState }),
   setSpeed: (speed) => set({ speed }),
 
   updateCrowd: (crowd) => set({ crowd, lastUpdated: new Date().toISOString() }),

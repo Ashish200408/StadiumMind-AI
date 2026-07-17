@@ -9,10 +9,14 @@ export const generateExecutiveReport = async (
   generatedBy: string = 'Executive Intelligence Suite'
 ): Promise<GeneratedReport> => {
   const startTime = Date.now();
+
+  // Omit the massive 'modules' raw data to prevent Payload Too Large (HTTP 400) errors
+  const { modules, ...compressedData } = intelligenceData;
+
   const prompt = `
     You are the Executive Intelligence Assistant for StadiumMind AI.
     Generate a comprehensive ${reportType} based on the following Unified Intelligence data:
-    ${JSON.stringify(intelligenceData, null, 2)}
+    ${JSON.stringify(compressedData, null, 2)}
     
     The report must be in Markdown format and include:
     - Executive Summary

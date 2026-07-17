@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useEmergencyStore } from '../store/emergency-store';
 
 export const ActiveIncidentsPanel: React.FC = () => {
-  const priorityQueue = useEmergencyStore((state) => state.getPriorityQueue());
+  const incidents = useEmergencyStore((state) => state.incidents);
+  const getPriorityQueue = useEmergencyStore((state) => state.getPriorityQueue);
+  const priorityQueue = useMemo(() => getPriorityQueue(), [incidents, getPriorityQueue]);
 
   return (
     <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md rounded-xl p-6 border border-white/20 shadow-lg">

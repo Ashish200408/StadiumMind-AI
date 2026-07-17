@@ -171,10 +171,14 @@ export const mapEmergencyToStandard = (): StandardizedModule => {
 export const mapNavigationToStandard = (): StandardizedModule => {
   try {
     const state: any = useNavigationStore.getState();
+    const activeRoute = state.activeRoute;
+    const hasCongestion = activeRoute?.segments?.some((s: any) => s.congestionScore > 50);
+    const hasIncident = activeRoute?.segments?.some((s: any) => s.hasIncident);
+
     return {
       moduleName: 'Navigation Intelligence',
-      healthScore: 90, // Navigation might not have a direct health score
-      riskLevel: 'Low',
+      healthScore: hasIncident ? 60 : hasCongestion ? 80 : 95,
+      riskLevel: hasIncident ? 'High' : hasCongestion ? 'Medium' : 'Low',
       confidenceScore: 95,
       status: 'Active',
       metrics: {
@@ -182,7 +186,29 @@ export const mapNavigationToStandard = (): StandardizedModule => {
         nodes: Object.keys(state.nodes || {}).length,
       },
       recommendations: state.recommendations?.map((r: any) => r.reason || r.type) || [],
-      alerts: [],
+      alerts: hasIncident
+        ? [
+            {
+              id: `nav-inc-${Date.now()}`,
+              moduleSource: 'Navigation Intelligence',
+              severity: 'High',
+              priority: 2,
+              message: 'Active route passes through incident zone',
+              timestamp: new Date().toISOString(),
+            },
+          ]
+        : hasCongestion
+          ? [
+              {
+                id: `nav-cong-${Date.now()}`,
+                moduleSource: 'Navigation Intelligence',
+                severity: 'Medium',
+                priority: 3,
+                message: 'Active route experiencing high congestion',
+                timestamp: new Date().toISOString(),
+              },
+            ]
+          : [],
       lastUpdated: new Date().toISOString(),
     };
   } catch {

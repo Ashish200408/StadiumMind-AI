@@ -1,10 +1,53 @@
 import { AILogMetrics } from '../types';
+import { generateGracefulFallback } from './local-fallback-service';
 
 // Simple LRU-ish cache for exact prompts
 const responseCache = new Map<string, { response: string; timestamp: number }>();
 const CACHE_TTL_MS = 60000; // 1 minute
 
 const generateMetricsId = () => `ai-req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+let activeModelCache: string | null = null;
+
+const discoverModel = async (apiKey: string): Promise<string> => {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      `Failed to fetch models: HTTP ${response.status}: ${errorData?.error?.message || 'Unknown API Error'}`
+    );
+  }
+
+  const data = await response.json();
+  if (!data.models || !Array.isArray(data.models)) {
+    throw new Error(`Invalid models API response: ${JSON.stringify(data)}`);
+  }
+
+  const supportedModels = data.models.filter(
+    (m: any) =>
+      m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')
+  );
+
+  if (supportedModels.length === 0) {
+    throw new Error(
+      `No models supporting generateContent found. API Response: ${JSON.stringify(data)}`
+    );
+  }
+
+  // Sort descending by name to prioritize newer versions (e.g. gemini-3.5-flash > gemini-2.5-flash)
+  supportedModels.sort((a: any, b: any) => b.name.localeCompare(a.name));
+
+  const flashModels = supportedModels.filter((m: any) => m.name.includes('flash'));
+
+  if (flashModels.length > 0) {
+    return flashModels[0].name;
+  }
+
+  return supportedModels[0].name;
+};
 
 export const callGemini = async (prompt: string, signal?: AbortSignal): Promise<string> => {
   const reqTime = new Date().toISOString();
@@ -31,13 +74,18 @@ export const callGemini = async (prompt: string, signal?: AbortSignal): Promise<
     throw new Error('VITE_GEMINI_API_KEY is not configured in environment variables.');
   }
 
+  if (!activeModelCache) {
+    activeModelCache = await discoverModel(apiKey);
+    console.log(`Selected Gemini Model: ${activeModelCache}`);
+  }
+
   let attempt = 0;
   const maxRetries = 3;
 
   while (attempt < maxRetries) {
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/${activeModelCache}:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -59,7 +107,12 @@ export const callGemini = async (prompt: string, signal?: AbortSignal): Promise<
         if (response.status === 400 || response.status === 403) {
           throw new Error('InvalidKeyOrRequest');
         }
-        throw new Error(`HTTP ${response.status}`);
+
+        // Capture specific error from Google if possible
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `HTTP ${response.status}: ${errorData?.error?.message || 'Unknown API Error'}`
+        );
       }
 
       const data = await response.json();
@@ -93,13 +146,16 @@ export const callGemini = async (prompt: string, signal?: AbortSignal): Promise<
         throw new Error('Invalid or expired Gemini API key. Please contact system administrator.');
       }
 
+      if (error.message === 'RateLimit') {
+        logErrorMetrics(reqTime, startTime, prompt, 'RateLimit');
+        return generateGracefulFallback(prompt);
+      }
+
       attempt++;
 
       if (attempt >= maxRetries) {
         logErrorMetrics(reqTime, startTime, prompt, error.message);
-        throw new Error(
-          'Failed to communicate with AI Service after multiple attempts. Please try again later.'
-        );
+        return generateGracefulFallback(prompt);
       }
 
       // Exponential backoff

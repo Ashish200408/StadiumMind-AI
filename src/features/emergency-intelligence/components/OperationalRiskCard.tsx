@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useEmergencyStore } from '../store/emergency-store';
 
 export const OperationalRiskCard: React.FC = () => {
   const metrics = useEmergencyStore((state) => state.metrics);
-  const priorityQueue = useEmergencyStore((state) => state.getPriorityQueue());
+  const incidents = useEmergencyStore((state) => state.incidents);
+  const getPriorityQueue = useEmergencyStore((state) => state.getPriorityQueue);
+  const priorityQueue = useMemo(() => getPriorityQueue(), [incidents, getPriorityQueue]);
 
   const riskScore = metrics.operationalRiskScore;
   const activeIncident = priorityQueue[0];

@@ -10,46 +10,26 @@ import { useSimulationStore } from '../../simulation/store/simulation-store';
 
 export const useIntelligenceCore = () => {
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    const debouncedAggregation = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        triggerAggregation();
+      }, 500); // Debounce by 500ms to allow all underlying stores to update
+    };
+
     // Perform initial aggregation
-    triggerAggregation();
+    debouncedAggregation();
 
     // Subscribe to all underlying stores
-    // When any of these stores change, we re-trigger the aggregation.
-    // In a highly performant production app, we would use more granular selectors
-    // or throttle this aggregation to prevent excessive re-renders.
-
-    const unsubCrowd = useCrowdStore.subscribe(() => {
-      triggerAggregation();
-    });
-
-    const unsubMobility = useMobilityStore.subscribe(() => {
-      triggerAggregation();
-    });
-
-    const unsubAccessibility = useAccessibilityStore.subscribe(() => {
-      triggerAggregation();
-    });
-
-    const unsubSustainability = useSustainabilityStore.subscribe(() => {
-      triggerAggregation();
-    });
-
-    const unsubEmergency = useEmergencyStore.subscribe(() => {
-      triggerAggregation();
-    });
-
-    const unsubNavigation = useNavigationStore.subscribe(() => {
-      triggerAggregation();
-    });
-
-    const unsubSimulation = useSimulationStore.subscribe(() => {
-      triggerAggregation();
-    });
-
-    // Alternatively, setting up a polling interval for fallback aggregation
-    const interval = setInterval(() => {
-      triggerAggregation();
-    }, 5000);
+    const unsubCrowd = useCrowdStore.subscribe(debouncedAggregation);
+    const unsubMobility = useMobilityStore.subscribe(debouncedAggregation);
+    const unsubAccessibility = useAccessibilityStore.subscribe(debouncedAggregation);
+    const unsubSustainability = useSustainabilityStore.subscribe(debouncedAggregation);
+    const unsubEmergency = useEmergencyStore.subscribe(debouncedAggregation);
+    const unsubNavigation = useNavigationStore.subscribe(debouncedAggregation);
+    const unsubSimulation = useSimulationStore.subscribe(debouncedAggregation);
 
     return () => {
       unsubCrowd();
@@ -59,7 +39,7 @@ export const useIntelligenceCore = () => {
       unsubEmergency();
       unsubNavigation();
       unsubSimulation();
-      clearInterval(interval);
+      clearTimeout(timeoutId);
     };
   }, []);
 };

@@ -44,6 +44,11 @@ const ExecutiveDashboard = lazy(() =>
     default: module.ExecutiveDashboard,
   }))
 );
+const ReportsPage = lazy(() =>
+  import('@/features/executive-intelligence').then((module) => ({
+    default: module.ReportsPage,
+  }))
+);
 const CrowdIntelligencePage = lazy(() =>
   import('@/features/crowd-intelligence').then((module) => ({
     default: module.CrowdIntelligencePage,
@@ -166,7 +171,7 @@ const router = createBrowserRouter([
             path: ROUTES.REPORTS,
             element: (
               <Suspense fallback={<LoadingFallback />}>
-                <ExecutiveDashboard />
+                <ReportsPage />
               </Suspense>
             ),
           },

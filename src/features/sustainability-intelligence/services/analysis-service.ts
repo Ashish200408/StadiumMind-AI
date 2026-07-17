@@ -22,8 +22,10 @@ export function calculateSustainabilityMetrics(
   const carbonImpact = transportEmissions + energyEmissions;
 
   // Efficiency metrics
-  const maxEnergy = 50000; // Mock max energy capacity for score calculation
-  const maxWater = 100000;
+  // Scale max capacities based on crowd attendance
+  const baseCapacity = Math.max(10000, crowdMetrics.totalAttendance);
+  const maxEnergy = baseCapacity * 2; // e.g., 2kW per person capacity equivalent
+  const maxWater = baseCapacity * 5; // e.g., 5L per person capacity equivalent
   const resourceEfficiency = Math.max(
     0,
     100 - ((energyConsumption / maxEnergy + waterConsumption / maxWater) / 2) * 100

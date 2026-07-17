@@ -1,4 +1,5 @@
 import { StandardizedModule, ExecutiveSnapshot } from '../types';
+import { useSimulationStore } from '../../simulation/store/simulation-store';
 
 export const generateSnapshots = (
   modules: Record<string, StandardizedModule>
@@ -11,9 +12,12 @@ export const generateSnapshots = (
   const sustainability = getMod('Sustainability Intelligence');
   const emergency = getMod('Emergency Intelligence');
 
+  const currentScenario = useSimulationStore.getState().currentScenario;
+
   return {
     operationalSnapshot: {
       status: 'Active',
+      currentScenario: currentScenario,
       modulesReporting: Object.keys(modules).length,
       criticalAlerts: Object.values(modules)
         .flatMap((m) => m.alerts)

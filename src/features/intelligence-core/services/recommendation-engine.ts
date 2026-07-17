@@ -17,7 +17,7 @@ export const mergeRecommendations = (
           id: `rec-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           moduleSource: [mod.moduleName],
           action,
-          priorityRank: 99, // placeholder, will be sorted
+          priorityRank: 0,
         });
       }
     });
@@ -28,8 +28,12 @@ export const mergeRecommendations = (
   // Prioritize based on number of modules suggesting it and emergency keywords
   recommendations.sort((a, b) => {
     // If it's an emergency action, prioritize heavily
-    const isAEmergency = /dispatch|evacuate|emergency|escalate/i.test(a.action);
-    const isBEmergency = /dispatch|evacuate|emergency|escalate/i.test(b.action);
+    const isAEmergency = /dispatch|evacuate|emergency|escalate|critical|medical|security/i.test(
+      a.action
+    );
+    const isBEmergency = /dispatch|evacuate|emergency|escalate|critical|medical|security/i.test(
+      b.action
+    );
 
     if (isAEmergency && !isBEmergency) return -1;
     if (!isAEmergency && isBEmergency) return 1;
