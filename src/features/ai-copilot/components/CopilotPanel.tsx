@@ -5,6 +5,7 @@ import { ChatInput } from './ChatInput';
 import { SuggestedQuestions } from './SuggestedQuestions';
 import { QuickActions } from './QuickActions';
 import { CopilotCapabilities } from '../types';
+import { Sparkles, Trash2 } from 'lucide-react';
 
 export const CopilotPanel: React.FC = () => {
   const { messages, isLoading, error, sendMessage, clearConversation } = useCopilot();
@@ -18,47 +19,39 @@ export const CopilotPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 border-l border-gray-800">
-      <div className="flex items-center justify-between p-4 border-b border-gray-800 bg-gray-950">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-            <svg
-              className="w-5 h-5 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-              ></path>
-            </svg>
+    <div className="flex flex-col h-full bg-slate-900/40 backdrop-blur-3xl border border-white/10 rounded-3xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5)] m-4">
+      <div className="flex items-center justify-between p-5 border-b border-white/10 bg-black/20">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-full bg-cyan-950 border border-cyan-500/50 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)] relative">
+            <Sparkles className="w-5 h-5 text-cyan-400 animate-pulse" />
+            <div className="absolute inset-0 rounded-full bg-cyan-400 opacity-20 blur-md animate-pulse"></div>
           </div>
-          <h2 className="text-lg font-bold text-white">Gemini Operations Copilot</h2>
+          <div>
+            <h2 className="text-lg font-black text-white tracking-wide">
+              Gemini Operations Copilot
+            </h2>
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+              <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">
+                Active & Ready
+              </span>
+            </div>
+          </div>
         </div>
         <button
           onClick={clearConversation}
           title="Clear Conversation"
-          className="text-gray-400 hover:text-white transition-colors"
+          className="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors border border-transparent hover:border-red-500/30"
           aria-label="Clear Conversation"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-            ></path>
-          </svg>
+          <Trash2 className="w-5 h-5" />
         </button>
       </div>
 
       <QuickActions onTrigger={handleTriggerCapability} disabled={isLoading} />
 
       {error && (
-        <div className="bg-red-900/50 border-l-4 border-red-500 p-4 m-4 rounded">
+        <div className="bg-red-500/10 border border-red-500/30 p-4 mx-4 mt-4 rounded-xl shadow-[0_0_15px_rgba(239,68,68,0.2)]">
           <div className="flex items-center">
             <svg
               className="w-5 h-5 text-red-500 mr-2"

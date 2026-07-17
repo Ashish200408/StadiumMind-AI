@@ -12,7 +12,7 @@ export const generateSnapshots = (
   const sustainability = getMod('Sustainability Intelligence');
   const emergency = getMod('Emergency Intelligence');
 
-  const currentScenario = useSimulationStore.getState().currentScenario;
+  const currentScenario = (useSimulationStore.getState() as any).currentScenario || 'Normal Match';
 
   return {
     operationalSnapshot: {

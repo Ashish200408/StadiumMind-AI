@@ -1,11 +1,15 @@
 import React from 'react';
 import { useSimulationStore } from '../../simulation/store/simulation-store';
 import { Incident } from '../../simulation/types';
+import { PlayCircle, Users, AlertOctagon, Bus, Leaf, Accessibility } from 'lucide-react';
+import { useState } from 'react';
 
 export const DemoScenarioSelector: React.FC = () => {
   const { updateIncidents, updateEnvironment, environment, incidents } = useSimulationStore();
+  const [activeScenario, setActiveScenario] = useState<string>('Normal Match');
 
   const handleScenarioChange = (scenario: string) => {
+    setActiveScenario(scenario);
     switch (scenario) {
       case 'Normal Match':
         updateIncidents({});
@@ -89,30 +93,75 @@ export const DemoScenarioSelector: React.FC = () => {
   };
 
   const scenarios = [
-    'Normal Match',
-    'High Crowd',
-    'Emergency',
-    'Transport Failure',
-    'Sustainability Event',
-    'Accessibility Incident',
+    {
+      name: 'Normal Match',
+      icon: PlayCircle,
+      color: 'text-green-400',
+      border: 'hover:border-green-400/50',
+      active: 'bg-green-500/20 border-green-400 shadow-[0_0_15px_rgba(74,222,128,0.4)]',
+    },
+    {
+      name: 'High Crowd',
+      icon: Users,
+      color: 'text-amber-400',
+      border: 'hover:border-amber-400/50',
+      active: 'bg-amber-500/20 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.4)]',
+    },
+    {
+      name: 'Emergency',
+      icon: AlertOctagon,
+      color: 'text-red-400',
+      border: 'hover:border-red-400/50',
+      active: 'bg-red-500/20 border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.4)]',
+    },
+    {
+      name: 'Transport Failure',
+      icon: Bus,
+      color: 'text-purple-400',
+      border: 'hover:border-purple-400/50',
+      active: 'bg-purple-500/20 border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]',
+    },
+    {
+      name: 'Sustainability Event',
+      icon: Leaf,
+      color: 'text-emerald-400',
+      border: 'hover:border-emerald-400/50',
+      active: 'bg-emerald-500/20 border-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.4)]',
+    },
+    {
+      name: 'Accessibility Incident',
+      icon: Accessibility,
+      color: 'text-blue-400',
+      border: 'hover:border-blue-400/50',
+      active: 'bg-blue-500/20 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.4)]',
+    },
   ];
 
   return (
-    <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 p-4">
-      <h3 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-        Demo Scenario Selector
+    <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-4 shadow-inner">
+      <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+        Simulate Event
       </h3>
       <div className="flex flex-wrap gap-2">
-        {scenarios.map((scenario) => (
-          <button
-            key={scenario}
-            onClick={() => handleScenarioChange(scenario)}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-900 border border-slate-700 hover:border-blue-500/50 hover:bg-slate-800 transition-colors text-slate-300"
-          >
-            {scenario}
-          </button>
-        ))}
+        {scenarios.map((scenario) => {
+          const Icon = scenario.icon;
+          const isActive = activeScenario === scenario.name;
+          return (
+            <button
+              key={scenario.name}
+              onClick={() => handleScenarioChange(scenario.name)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-300 ${
+                isActive
+                  ? `${scenario.active} text-white`
+                  : `bg-slate-900 border-white/5 ${scenario.border} text-slate-300 hover:text-white hover:bg-slate-800`
+              }`}
+            >
+              <Icon className={`h-4 w-4 ${isActive ? 'text-white' : scenario.color}`} />
+              {scenario.name}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

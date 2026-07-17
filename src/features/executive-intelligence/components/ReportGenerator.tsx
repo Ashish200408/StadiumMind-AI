@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useExecutiveIntelligence } from '../hooks/useExecutiveIntelligence';
 import { ReportType } from '../types';
+import { FilePlus2, Sparkles, Wand2 } from 'lucide-react';
 
 export const ReportGenerator: React.FC = () => {
   const { generateReport, isGeneratingReport } = useExecutiveIntelligence();
@@ -25,17 +26,21 @@ export const ReportGenerator: React.FC = () => {
   };
 
   return (
-    <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6">
-      <h3 className="font-semibold text-slate-200 mb-4">Generate Executive Report</h3>
+    <div className="bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-lg">
+      <h3 className="font-bold text-white tracking-wide mb-6 flex items-center gap-2">
+        <FilePlus2 className="h-5 w-5 text-cyan-400" /> Generate Executive Report
+      </h3>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5">
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-2">Report Type</label>
+          <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+            Report Type
+          </label>
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value as ReportType)}
             disabled={isGeneratingReport}
-            className="w-full bg-slate-900 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-50"
+            className="w-full bg-black/40 border border-white/10 text-white font-medium rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all disabled:opacity-50 shadow-inner"
           >
             {reportTypes.map((type) => (
               <option key={type} value={type}>
@@ -48,21 +53,22 @@ export const ReportGenerator: React.FC = () => {
         <button
           onClick={handleGenerate}
           disabled={isGeneratingReport}
-          className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl font-bold text-sm transition-all shadow-[0_0_15px_rgba(6,182,212,0.4)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isGeneratingReport ? (
             <>
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Generating via AI...
+              Generating via AI Core...
             </>
           ) : (
             <>
-              <span className="text-lg">✨</span> Generate Report
+              <Sparkles className="h-4 w-4" /> Generate Report
             </>
           )}
         </button>
 
-        <p className="text-xs text-slate-500 mt-2">
+        <p className="text-[10px] text-slate-500 mt-2 font-medium flex gap-2 items-start leading-relaxed bg-white/5 p-3 rounded-lg border border-white/5">
+          <Wand2 className="h-4 w-4 shrink-0 text-cyan-500/50" />
           Reports are generated deterministically using real-time Unified Intelligence data and
           Gemini Operations Copilot.
         </p>

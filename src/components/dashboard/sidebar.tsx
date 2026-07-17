@@ -36,12 +36,17 @@ interface SidebarProps {
 export function Sidebar({ className, onLinkClick }: SidebarProps) {
   return (
     <div
-      className={cn('flex flex-col h-full bg-card border-r w-64 text-card-foreground', className)}
+      className={cn(
+        'flex flex-col h-full bg-slate-900/60 backdrop-blur-xl border-r border-white/10 w-64 text-slate-300 shadow-[4px_0_24px_rgba(0,0,0,0.5)]',
+        className
+      )}
     >
-      <div className="flex items-center justify-center h-16 border-b px-4 shrink-0">
-        <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-primary">
-          <BrainCircuit className="h-6 w-6" />
-          <span>StadiumMind AI</span>
+      <div className="flex items-center justify-center h-20 border-b border-white/10 px-4 shrink-0 bg-gradient-to-b from-black/20 to-transparent">
+        <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-white drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]">
+          <BrainCircuit className="h-7 w-7 text-cyan-400" />
+          <span>
+            StadiumMind <span className="text-cyan-400">AI</span>
+          </span>
         </div>
       </div>
 
@@ -56,29 +61,45 @@ export function Sidebar({ className, onLinkClick }: SidebarProps) {
                 onClick={onLinkClick}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                    'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 relative overflow-hidden group',
                     isActive
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      ? 'bg-cyan-500/20 text-cyan-50 shadow-[inset_0_0_20px_rgba(6,182,212,0.2)] border border-cyan-500/30'
+                      : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'
                   )
                 }
               >
-                <Icon className="h-5 w-5 shrink-0" />
-                {link.name}
+                {/* Active glow line */}
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,1)]" />
+                    )}
+                    <Icon
+                      className={cn(
+                        'h-5 w-5 shrink-0 transition-colors',
+                        isActive ? 'text-cyan-400' : 'group-hover:text-cyan-300'
+                      )}
+                    />
+                    <span className="relative z-10">{link.name}</span>
+                  </>
+                )}
               </NavLink>
             );
           })}
         </nav>
       </div>
 
-      <div className="p-4 border-t shrink-0">
-        <div className="flex items-center gap-3 rounded-lg border bg-muted/50 p-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-primary">
-            <span className="font-semibold text-sm">AI</span>
+      <div className="p-4 border-t border-white/10 shrink-0 bg-black/20">
+        <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-800/50 p-3 shadow-inner">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-950 border border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.4)] relative">
+            <span className="font-bold text-sm">AI</span>
+            <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-slate-900 animate-pulse"></div>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold">Copilot Active</span>
-            <span className="text-xs text-green-500">System Nominal</span>
+            <span className="text-sm font-bold text-slate-200">Copilot Active</span>
+            <span className="text-xs font-medium text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]">
+              System Nominal
+            </span>
           </div>
         </div>
       </div>

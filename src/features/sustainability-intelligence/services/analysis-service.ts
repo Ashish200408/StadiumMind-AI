@@ -23,7 +23,7 @@ export function calculateSustainabilityMetrics(
 
   // Efficiency metrics
   // Scale max capacities based on crowd attendance
-  const baseCapacity = Math.max(10000, crowdMetrics.totalAttendance);
+  const baseCapacity = 88000; // Expected attendance capacity
   const maxEnergy = baseCapacity * 2; // e.g., 2kW per person capacity equivalent
   const maxWater = baseCapacity * 5; // e.g., 5L per person capacity equivalent
   const resourceEfficiency = Math.max(

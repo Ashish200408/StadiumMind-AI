@@ -35,11 +35,11 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b bg-background px-4 sm:px-6 shadow-sm">
+    <header className="sticky top-0 z-30 flex h-20 shrink-0 items-center gap-4 border-b border-white/10 bg-slate-900/40 backdrop-blur-xl px-4 sm:px-6 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
       {/* Mobile Menu Toggle */}
       <button
         onClick={onMenuClick}
-        className="lg:hidden rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        className="lg:hidden rounded-lg p-2 text-slate-300 hover:bg-white/10 hover:text-white transition-colors focus:outline-none"
       >
         <Menu className="h-6 w-6" />
         <span className="sr-only">Open menu</span>
@@ -48,14 +48,14 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       {/* Global Search */}
       <div className="flex flex-1 items-center gap-4">
         <form className="hidden sm:flex relative w-full max-w-md items-center">
-          <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 h-5 w-5 text-cyan-500/50" />
           <input
             type="search"
             placeholder="Search resources, reports, or ask AI..."
-            className="w-full rounded-md border border-input bg-background pl-9 pr-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="w-full rounded-xl border border-white/10 bg-black/20 pl-10 pr-4 py-2.5 text-sm text-white shadow-inner placeholder:text-slate-500 transition-all focus:border-cyan-500/50 focus:bg-black/40 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
           />
           <div className="absolute right-2 flex items-center">
-            <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+            <kbd className="hidden sm:inline-flex h-6 items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2 font-mono text-[10px] font-medium text-slate-400">
               <span className="text-xs">⌘</span>K
             </kbd>
           </div>
@@ -67,17 +67,22 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="hidden sm:flex items-center gap-2 text-primary hover:text-primary hover:bg-primary/10"
+          onClick={() => navigate(ROUTES.AI_COMMAND)}
+          className="hidden sm:flex items-center gap-2 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-lg shadow-[0_0_15px_rgba(6,182,212,0.2)]"
         >
-          <Sparkles className="h-4 w-4" />
-          <span>Copilot</span>
+          <Sparkles className="h-4 w-4 animate-pulse" />
+          <span className="font-semibold tracking-wide">Copilot</span>
         </Button>
 
         {/* Language Selector (UI Only) */}
         <Dropdown
           trigger={
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Globe className="h-5 w-5 text-muted-foreground" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+            >
+              <Globe className="h-5 w-5" />
               <span className="sr-only">Language</span>
             </Button>
           }
@@ -105,9 +110,13 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         {/* Notification Center */}
         <Dropdown
           trigger={
-            <Button variant="ghost" size="icon" className="rounded-full relative">
-              <Bell className="h-5 w-5 text-muted-foreground" />
-              <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-destructive" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full relative hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+            >
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-1 right-1 flex h-2.5 w-2.5 rounded-full bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.8)] animate-pulse" />
               <span className="sr-only">Notifications</span>
             </Button>
           }

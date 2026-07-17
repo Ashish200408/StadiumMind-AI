@@ -1,4 +1,5 @@
 import React from 'react';
+import { ShieldAlert } from 'lucide-react';
 import { EmergencySummary } from './EmergencySummary';
 import { ActiveIncidentsPanel } from './ActiveIncidentsPanel';
 import { EmergencyTimeline } from './EmergencyTimeline';
@@ -11,14 +12,19 @@ import { IncidentDependencyVisualizer } from './IncidentDependencyVisualizer';
 
 export const EmergencyDashboard: React.FC = () => {
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-orange-500">
-          Emergency Response Intelligence
-        </h1>
-        <p className="text-gray-500 mt-2">
-          Continuous monitoring, deterministic threat evaluation, and response orchestration.
-        </p>
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
+      <div className="mb-10 flex items-center gap-4">
+        <div className="w-14 h-14 rounded-full bg-red-950 border border-red-500/50 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+          <ShieldAlert className="w-7 h-7 text-red-400" />
+        </div>
+        <div>
+          <h1 className="text-4xl font-black text-white tracking-tight">
+            Emergency Response Intelligence
+          </h1>
+          <p className="text-slate-400 mt-1 font-medium tracking-wide">
+            Continuous monitoring, deterministic threat evaluation, and response orchestration.
+          </p>
+        </div>
       </div>
 
       <EmergencySummary />

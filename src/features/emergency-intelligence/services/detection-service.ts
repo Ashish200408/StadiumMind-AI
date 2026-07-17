@@ -20,7 +20,7 @@ export const evaluateConditions = () => {
       inc.lifecycleState !== 'Closed' &&
       inc.lifecycleState !== 'Resolved'
     ) {
-      emergencyStore.updateIncidentStatus(inc.id, 'Resolved');
+      emergencyStore.updateIncident(inc.id, { lifecycleState: 'Resolved' });
     }
   });
 
@@ -41,13 +41,7 @@ export const evaluateConditions = () => {
       else if (simIncident.severity === 'high') severity = 'High';
       else if (simIncident.severity === 'medium') severity = 'Medium';
 
-      triggerIncident(
-        type,
-        severity,
-        simIncident.location.name,
-        simIncident.id,
-        simIncident.description
-      );
+      triggerIncident(type, severity, simIncident.location.name, simIncident.id);
     }
   });
 };
@@ -56,8 +50,7 @@ export const triggerIncident = (
   type: EmergencyType,
   severity: EmergencySeverity,
   location: string,
-  id: string,
-  description: string
+  id: string
 ) => {
   const store = useEmergencyStore.getState();
 

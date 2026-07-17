@@ -2,6 +2,7 @@ import React from 'react';
 import { GeneratedReport } from '../types';
 import { ExportControls } from './ExportControls';
 import { useExecutiveIntelligence } from '../hooks/useExecutiveIntelligence';
+import { FileText } from 'lucide-react';
 
 interface ReportHistoryPanelProps {
   reports: GeneratedReport[];
@@ -12,21 +13,22 @@ export const ReportHistoryPanel: React.FC<ReportHistoryPanelProps> = ({ reports 
 
   if (reports.length === 0) {
     return (
-      <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 p-8 text-center text-slate-500">
-        No reports have been generated yet.
+      <div className="bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-white/10 p-8 text-center text-slate-500 shadow-lg min-h-[200px] flex items-center justify-center">
+        <p className="font-medium">No reports have been generated yet.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden flex flex-col h-full">
-      <div className="p-4 border-b border-slate-700/50 bg-slate-800/80">
-        <h3 className="font-semibold text-slate-200">Report History</h3>
+    <div className="bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-white/10 overflow-hidden flex flex-col h-full shadow-lg">
+      <div className="p-5 border-b border-white/10 bg-black/20 flex items-center gap-2">
+        <FileText className="h-5 w-5 text-cyan-400" />
+        <h3 className="font-bold text-white tracking-wide">Report History</h3>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full text-left text-sm text-slate-400">
-          <thead className="text-xs uppercase bg-slate-900/50 text-slate-500 border-b border-slate-700/50">
+          <thead className="text-[10px] uppercase font-black tracking-widest bg-black/40 text-slate-500 border-b border-white/10">
             <tr>
               <th className="px-4 py-3">Report Type</th>
               <th className="px-4 py-3">Generated Time</th>
@@ -36,21 +38,23 @@ export const ReportHistoryPanel: React.FC<ReportHistoryPanelProps> = ({ reports 
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700/50">
+          <tbody className="divide-y divide-white/5">
             {reports.map((report) => (
-              <tr key={report.id} className="hover:bg-slate-800/50 transition-colors">
-                <td className="px-4 py-3 font-medium text-slate-200">{report.type}</td>
-                <td className="px-4 py-3">{new Date(report.generatedTime).toLocaleString()}</td>
-                <td className="px-4 py-3">{report.generatedBy}</td>
-                <td className="px-4 py-3">{report.reportSizeKb.toFixed(1)} KB</td>
-                <td className="px-4 py-3">
+              <tr key={report.id} className="hover:bg-white/5 transition-colors">
+                <td className="px-4 py-4 font-bold text-slate-200">{report.type}</td>
+                <td className="px-4 py-4 font-mono text-xs text-slate-400">
+                  {new Date(report.generatedTime).toLocaleString()}
+                </td>
+                <td className="px-4 py-4 text-xs font-bold text-slate-500">{report.generatedBy}</td>
+                <td className="px-4 py-4 font-mono text-xs">{report.reportSizeKb.toFixed(1)} KB</td>
+                <td className="px-4 py-4">
                   <span
-                    className={`px-2 py-1 rounded-full text-[10px] uppercase font-bold ${
+                    className={`px-3 py-1 rounded-md text-[10px] uppercase font-black tracking-wider border ${
                       report.exportStatus === 'Exported'
-                        ? 'bg-green-500/20 text-green-400'
+                        ? 'bg-green-500/20 text-green-400 border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.2)]'
                         : report.exportStatus === 'Pending'
-                          ? 'bg-amber-500/20 text-amber-400'
-                          : 'bg-slate-700 text-slate-300'
+                          ? 'bg-amber-500/20 text-amber-400 border-amber-500/30 shadow-[0_0_10px_rgba(251,191,36,0.2)]'
+                          : 'bg-black/40 text-slate-400 border-white/10'
                     }`}
                   >
                     {report.exportStatus}
