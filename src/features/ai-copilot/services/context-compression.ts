@@ -25,12 +25,20 @@ export const compressContext = (data: UnifiedIntelligence): string => {
   const topRecommendations = data.globalRecommendations.slice(0, 5);
 
   const compressed = {
-    scores,
-    criticalAlerts: criticalHighAlerts,
-    otherAlerts: lowerAlertsSummary,
+    timestamp: new Date().toISOString(),
+    overallScores: data.overallScores,
+    currentDemoScenario:
+      (data.snapshots as any)?.operationalSnapshot?.currentScenario || 'Normal Match',
+    crowdIntelligence: data.modules['Crowd Intelligence']?.metrics || {},
+    navigationIntelligence: data.modules['Navigation Intelligence']?.metrics || {},
+    mobilityIntelligence: data.modules['Mobility Intelligence']?.metrics || {},
+    accessibilityIntelligence: data.modules['Accessibility Intelligence']?.metrics || {},
+    sustainabilityIntelligence: data.modules['Sustainability Intelligence']?.metrics || {},
+    activeAlerts: criticalHighAlerts,
+    otherAlertsSummary: lowerAlertsSummary,
+    topRecommendations: topRecommendations,
     recentEvents,
-    topRecommendations,
-    snapshots: data.snapshots,
+    executiveSummary: data.snapshots,
   };
 
   return JSON.stringify(compressed);

@@ -1,10 +1,12 @@
 import React, { useRef, useEffect } from 'react';
 import { ChatMessage } from '../types';
-import { Sparkles, Bot, User } from 'lucide-react';
+import { Sparkles, Bot, User, ArrowRight } from 'lucide-react';
+import { useIntelligenceCoreStore } from '../../intelligence-core/store/intelligence-core-store';
 
 interface ChatHistoryProps {
   messages: ChatMessage[];
   isLoading: boolean;
+  isStreaming?: boolean;
 }
 
 const renderMarkdown = (text: string) => {
@@ -141,8 +143,57 @@ const renderMarkdown = (text: string) => {
   return elements;
 };
 
-export const ChatHistory: React.FC<ChatHistoryProps> = ({ messages, isLoading }) => {
+export const ChatHistory: React.FC<ChatHistoryProps & { onSend?: (text: string) => void }> = ({
+  messages,
+  isLoading,
+  isStreaming,
+  onSend,
+}) => {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { unifiedData } = useIntelligenceCoreStore();
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const getDynamicFollowUps = (messageText: string) => {
+    if (!unifiedData) return [];
+
+    const followUps: string[] = [];
+    const health = unifiedData.overallScores.overallStadiumHealth;
+    const isEmergency =
+      messageText.toLowerCase().includes('critical') || messageText.toLowerCase().includes('risk');
+
+    if (isEmergency) {
+      followUps.push('Generate Emergency Response Plan');
+      followUps.push('Explain Current Risks');
+    } else {
+      followUps.push('Predict Next 30 Minutes');
+    }
+
+    if (health < 80) {
+      followUps.push('Recommend Resource Allocation');
+    } else {
+      followUps.push('Show Crowd Forecast');
+    }
+
+    if (messageText.includes('Transport') || messageText.includes('Mobility')) {
+      followUps.push('Analyze Transport Status');
+    }
+
+    return followUps.slice(0, 3); // Return top 3
+  };
+
+  const getActiveModules = () => {
+    if (!unifiedData) return ['Simulation Engine', 'Intelligence Core'];
+    const modules = ['Simulation Engine', 'Intelligence Core'];
+    if (unifiedData.globalAlerts.some((a) => a.severity === 'Critical'))
+      modules.push('Active Incident Feed');
+    if (unifiedData.overallScores.overallMobilityScore < 80) modules.push('Mobility Intelligence');
+    if (unifiedData.modules['Crowd Intelligence']?.healthScore < 80)
+      modules.push('Crowd Intelligence');
+    return modules;
+  };
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -194,8 +245,59 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({ messages, isLoading })
               {msg.role === 'user' ? (
                 <p className="whitespace-pre-wrap font-medium">{msg.content}</p>
               ) : (
-                <div className="text-sm prose prose-invert max-w-none prose-p:leading-relaxed prose-headings:text-white prose-a:text-cyan-400">
-                  {renderMarkdown(msg.content)}
+                <div className="relative">
+                  <div className="text-sm prose prose-invert max-w-none prose-p:leading-relaxed prose-headings:text-white prose-a:text-cyan-400">
+                    {renderMarkdown(msg.content)}
+                    {isStreaming && msg.id === messages[messages.length - 1].id && (
+                      <span className="inline-block w-2 h-4 bg-cyan-400 ml-1 animate-pulse align-middle"></span>
+                    )}
+                  </div>
+
+                  {!isStreaming && msg.id === messages[messages.length - 1].id && (
+                    <div className="mt-4 pt-4 border-t border-white/10 space-y-4">
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-400">
+                        <Bot className="w-3 h-3 text-cyan-500" />
+                        <span>Analysis Based On:</span>
+                        {getActiveModules().map((mod) => (
+                          <span
+                            key={mod}
+                            className="bg-white/5 border border-white/10 px-2 py-0.5 rounded text-slate-300"
+                          >
+                            {mod}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleCopy(msg.content)}
+                          className="px-3 py-1.5 bg-black/40 hover:bg-white/10 border border-white/5 hover:border-cyan-500/30 rounded-lg text-xs font-medium text-slate-300 transition-colors"
+                        >
+                          Copy Response
+                        </button>
+                      </div>
+
+                      {/* Dynamic Follow Ups */}
+                      {onSend && (
+                        <div className="pt-2 flex flex-col gap-2">
+                          <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                            Suggested Follow-ups
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {getDynamicFollowUps(msg.content).map((followUp) => (
+                              <button
+                                key={followUp}
+                                onClick={() => onSend(followUp)}
+                                className="px-3 py-1.5 bg-cyan-900/20 hover:bg-cyan-900/40 border border-cyan-500/20 hover:border-cyan-500/50 rounded-lg text-xs font-medium text-cyan-300 transition-colors flex items-center gap-1.5"
+                              >
+                                {followUp} <ArrowRight className="w-3 h-3 opacity-70" />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
               <span
@@ -220,16 +322,21 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({ messages, isLoading })
               <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
             </div>
             <div className="bg-black/60 rounded-2xl rounded-bl-sm border border-white/10 backdrop-blur-xl p-5 shadow-lg">
-              <div className="flex space-x-2 items-center h-5">
-                <div className="w-2 h-2 bg-cyan-500/50 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-cyan-500/50 rounded-full animate-bounce"
-                  style={{ animationDelay: '0.2s' }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-cyan-500/50 rounded-full animate-bounce"
-                  style={{ animationDelay: '0.4s' }}
-                ></div>
+              <div className="flex items-center gap-3 h-5">
+                <div className="text-xs font-bold text-cyan-500 uppercase tracking-widest mr-2 animate-pulse">
+                  Analyzing
+                </div>
+                <div className="flex space-x-1.5">
+                  <div className="w-1.5 h-1.5 bg-cyan-500/50 rounded-full animate-bounce"></div>
+                  <div
+                    className="w-1.5 h-1.5 bg-cyan-500/50 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.2s' }}
+                  ></div>
+                  <div
+                    className="w-1.5 h-1.5 bg-cyan-500/50 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.4s' }}
+                  ></div>
+                </div>
               </div>
               <span className="sr-only">Copilot is typing...</span>
             </div>

@@ -8,9 +8,12 @@ import { parseResponse } from '../utils/response-parser';
 interface ConversationState {
   messages: ChatMessage[];
   isLoading: boolean;
+  isStreaming: boolean;
+  responseMode: 'Executive Summary' | 'Detailed Analysis';
   error: string | null;
   abortController: AbortController | null;
 
+  setResponseMode: (mode: 'Executive Summary' | 'Detailed Analysis') => void;
   sendMessage: (content: string, capability?: CopilotCapabilities) => Promise<void>;
   clearConversation: () => void;
 }
@@ -18,11 +21,15 @@ interface ConversationState {
 export const useConversationManager = create<ConversationState>((set, get) => ({
   messages: [],
   isLoading: false,
+  isStreaming: false,
+  responseMode: 'Executive Summary',
   error: null,
   abortController: null,
 
+  setResponseMode: (mode) => set({ responseMode: mode }),
+
   sendMessage: async (content: string, capability?: CopilotCapabilities) => {
-    const { abortController } = get();
+    const { abortController, messages, responseMode } = get();
 
     // Abort previous if still loading
     if (abortController) {
@@ -46,7 +53,7 @@ export const useConversationManager = create<ConversationState>((set, get) => ({
     }));
 
     try {
-      const prompt = buildPrompt(content, capability);
+      const prompt = buildPrompt(content, get().messages, responseMode, capability);
 
       // Guardrails execution
       validatePrompt(prompt, content);
@@ -57,19 +64,46 @@ export const useConversationManager = create<ConversationState>((set, get) => ({
       // Parsing execution
       const parsedResponse = parseResponse(rawResponse);
 
-      const modelMessage: ChatMessage = {
-        id: `msg-model-${Date.now()}`,
-        role: 'model',
-        content: parsedResponse,
-        timestamp: new Date().toISOString(),
-      };
+      const modelMessageId = `msg-model-${Date.now()}`;
 
+      // Setup empty message for streaming
       set((state) => ({
-        messages: [...state.messages, modelMessage],
+        messages: [
+          ...state.messages,
+          {
+            id: modelMessageId,
+            role: 'model',
+            content: '',
+            timestamp: new Date().toISOString(),
+          },
+        ],
         isLoading: false,
-        abortController: null,
+        isStreaming: true,
       }));
+
+      // Simulate streaming (word by word)
+      const words = parsedResponse.split(' ');
+      let currentContent = '';
+
+      for (let i = 0; i < words.length; i++) {
+        if (newController.signal.aborted) {
+          break;
+        }
+        currentContent += (i > 0 ? ' ' : '') + words[i];
+
+        set((state) => ({
+          messages: state.messages.map((msg) =>
+            msg.id === modelMessageId ? { ...msg, content: currentContent } : msg
+          ),
+        }));
+
+        // Dynamic delay based on word length for natural feel (avg 20-50ms per word)
+        await new Promise((r) => setTimeout(r, 20 + Math.random() * 30));
+      }
+
+      set({ isStreaming: false, abortController: null });
     } catch (error: any) {
+      set({ isStreaming: false });
       if (error.name === 'AbortError') {
         // Silently ignore aborts
         return;
@@ -95,6 +129,6 @@ export const useConversationManager = create<ConversationState>((set, get) => ({
     if (abortController) {
       abortController.abort();
     }
-    set({ messages: [], error: null, isLoading: false, abortController: null });
+    set({ messages: [], error: null, isLoading: false, isStreaming: false, abortController: null });
   },
 }));
