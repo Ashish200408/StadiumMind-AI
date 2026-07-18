@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.88% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>8/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/8</span>
+                <span class='fraction'>8/8</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.88% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>8/9</span>
+                <span class='fraction'>9/9</span>
             </div>
         
             
@@ -138,13 +138,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -159,25 +157,27 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { buildAIContext } from './ai-context-builder';
 import { SYSTEM_PROMPT } from '../prompts/system-prompt';
@@ -198,16 +198,16 @@ export const buildPromptPayload = (
 ): PromptPayload =&gt; {
   const context = buildAIContext(intent);
 &nbsp;
-  const template = capability ? <span class="branch-0 cbranch-no" title="branch not covered" >PROMPT_TEMPLATES[capability] : P</span>ROMPT_TEMPLATES.DEFAULT;
+  const template = capability ? PROMPT_TEMPLATES[capability] : PROMPT_TEMPLATES.DEFAULT;
 &nbsp;
   const systemInstruction = `
 ${SYSTEM_PROMPT}
 &nbsp;
 # Objective
-${template?.objective || <span class="branch-1 cbranch-no" title="branch not covered" >PROMPT_TEMPLATES.DEFAULT.objective}</span>
+${template?.objective || PROMPT_TEMPLATES.DEFAULT.objective}
 &nbsp;
 # Required Output
-${template?.requiredOutput || <span class="branch-1 cbranch-no" title="branch not covered" >PROMPT_TEMPLATES.DEFAULT.requiredOutput}</span>
+${template?.requiredOutput || PROMPT_TEMPLATES.DEFAULT.requiredOutput}
 &nbsp;
 # Response Mode
 The user has requested the response to be in **${responseMode}** mode. Adapt your depth accordingly.
@@ -225,8 +225,8 @@ ${sanitizedQuery}
 &lt;/user_input&gt;
   `.trim();
 &nbsp;
-  <span class="missing-if-branch" title="if path not taken" >I</span>if (context) {
-<span class="cstat-no" title="statement not covered" >    userMessage = `</span>
+  if (context) {
+    userMessage = `
 # Operational Context
 ${context}
 &nbsp;
@@ -244,7 +244,7 @@ ${userMessage}
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-18T14:41:02.450Z
+                at 2026-07-18T15:26:47.072Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

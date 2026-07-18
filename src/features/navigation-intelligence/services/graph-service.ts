@@ -140,3 +140,35 @@ export function initializeStadiumGraph(): { nodes: Record<string, GraphNode>; ed
 
   return { nodes, edges: biEdges };
 }
+
+export function toggleNodeClosure(
+  nodeId: string,
+  isClosed: boolean,
+  nodes: Record<string, GraphNode>
+): Record<string, GraphNode> {
+  if (!nodes[nodeId]) return nodes;
+  return {
+    ...nodes,
+    [nodeId]: {
+      ...nodes[nodeId],
+      isClosed,
+    },
+  };
+}
+
+export function toggleEdgeClosure(
+  source: string,
+  target: string,
+  isClosed: boolean,
+  edges: GraphEdge[]
+): GraphEdge[] {
+  return edges.map((edge) => {
+    if (
+      (edge.source === source && edge.target === target) ||
+      (edge.source === target && edge.target === source)
+    ) {
+      return { ...edge, isClosed };
+    }
+    return edge;
+  });
+}

@@ -47,10 +47,14 @@ export function calculateRoute(
     for (const neighbor of neighbors) {
       if (!unvisited.has(neighbor.target)) continue;
 
+      // Check closures
+      if (neighbor.isClosed) continue;
+
       // Check accessibility
       if (context.accessibilityRequired && !neighbor.isAccessible) continue;
 
       const targetNode = nodes[neighbor.target];
+      if (targetNode.isClosed) continue;
       if (context.accessibilityRequired && !targetNode.isAccessible) continue;
 
       // Calculate weight based on routeType

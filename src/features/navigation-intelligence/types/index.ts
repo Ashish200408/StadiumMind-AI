@@ -15,6 +15,7 @@ export interface GraphNode {
   name: string;
   isAccessible: boolean;
   baseCongestion: number;
+  isClosed?: boolean;
 }
 
 export interface GraphEdge {
@@ -23,6 +24,7 @@ export interface GraphEdge {
   distance: number; // in meters
   baseTime: number; // in seconds
   isAccessible: boolean;
+  isClosed?: boolean;
 }
 
 export type RouteType =
@@ -71,4 +73,19 @@ export interface NavigationState {
   recommendations: NavigationRecommendation[];
   activeRoute: CalculatedRoute | null;
   lastCalculated: string;
+}
+
+export interface IntentAgentResponse {
+  startNodeId: string | null;
+  targetNodeId: string | null;
+  targetAmenityType: NodeType | null;
+  accessibilityRequired: boolean;
+  language: string;
+  isAmbiguous: boolean;
+  clarifyingQuestion?: string;
+}
+
+export interface GuideAgentResponse {
+  routeExplanation: string;
+  language: string;
 }
