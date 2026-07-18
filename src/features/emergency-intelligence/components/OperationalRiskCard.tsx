@@ -3,9 +3,8 @@ import { useEmergencyStore } from '../store/emergency-store';
 
 export const OperationalRiskCard: React.FC = () => {
   const metrics = useEmergencyStore((state) => state.metrics);
-  const incidents = useEmergencyStore((state) => state.incidents);
   const getPriorityQueue = useEmergencyStore((state) => state.getPriorityQueue);
-  const priorityQueue = useMemo(() => getPriorityQueue(), [incidents, getPriorityQueue]);
+  const priorityQueue = useMemo(() => getPriorityQueue(), [getPriorityQueue]);
 
   const riskScore = metrics.operationalRiskScore;
   const activeIncident = priorityQueue[0];

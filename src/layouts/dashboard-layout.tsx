@@ -41,7 +41,10 @@ export function DashboardLayout() {
       </div>
 
       {/* Global AI Copilot Floating Button (Mobile focused, as desktop has it in topbar) */}
-      <button className="lg:hidden absolute bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-cyan-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(6,182,212,0.8)] transition-shadow focus:outline-none">
+      <button
+        aria-label="Toggle Copilot"
+        className="lg:hidden absolute bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-cyan-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(6,182,212,0.8)] transition-shadow focus:outline-none"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"

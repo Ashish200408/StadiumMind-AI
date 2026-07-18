@@ -11,7 +11,7 @@ export const generateExecutiveReport = async (
   const startTime = Date.now();
 
   // Omit the massive 'modules' raw data to prevent Payload Too Large (HTTP 400) errors
-  const { modules, ...compressedData } = intelligenceData;
+  const { modules: _modules, ...compressedData } = intelligenceData;
 
   const prompt = `
     You are the Executive Intelligence Assistant for StadiumMind AI.

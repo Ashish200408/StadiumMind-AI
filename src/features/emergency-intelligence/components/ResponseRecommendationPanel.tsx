@@ -2,9 +2,8 @@ import React, { useMemo } from 'react';
 import { useEmergencyStore } from '../store/emergency-store';
 
 export const ResponseRecommendationPanel: React.FC = () => {
-  const incidents = useEmergencyStore((state) => state.incidents);
   const getPriorityQueue = useEmergencyStore((state) => state.getPriorityQueue);
-  const priorityQueue = useMemo(() => getPriorityQueue(), [incidents, getPriorityQueue]);
+  const priorityQueue = useMemo(() => getPriorityQueue(), [getPriorityQueue]);
 
   const activeIncident = priorityQueue[0];
 

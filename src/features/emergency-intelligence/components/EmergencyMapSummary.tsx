@@ -2,9 +2,8 @@ import React, { useMemo } from 'react';
 import { useEmergencyStore } from '../store/emergency-store';
 
 export const EmergencyMapSummary: React.FC = () => {
-  const incidents = useEmergencyStore((state) => state.incidents);
   const getPriorityQueue = useEmergencyStore((state) => state.getPriorityQueue);
-  const priorityQueue = useMemo(() => getPriorityQueue(), [incidents, getPriorityQueue]);
+  const priorityQueue = useMemo(() => getPriorityQueue(), [getPriorityQueue]);
 
   return (
     <div className="bg-white/10 dark:bg-gray-800/50 backdrop-blur-md rounded-xl p-6 border border-white/20 shadow-lg min-h-[300px] flex flex-col">

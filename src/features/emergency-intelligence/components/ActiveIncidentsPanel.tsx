@@ -3,9 +3,8 @@ import { useEmergencyStore } from '../store/emergency-store';
 import { AlertTriangle, Clock, MapPin, Activity, ShieldAlert } from 'lucide-react';
 
 export const ActiveIncidentsPanel: React.FC = () => {
-  const incidents = useEmergencyStore((state) => state.incidents);
   const getPriorityQueue = useEmergencyStore((state) => state.getPriorityQueue);
-  const priorityQueue = useMemo(() => getPriorityQueue(), [incidents, getPriorityQueue]);
+  const priorityQueue = useMemo(() => getPriorityQueue(), [getPriorityQueue]);
 
   return (
     <div className="bg-slate-900/60 backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-lg h-full flex flex-col">

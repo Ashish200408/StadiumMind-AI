@@ -4,7 +4,7 @@ import { ChatHistory } from './ChatHistory';
 import { ChatInput } from './ChatInput';
 import { SuggestedQuestions } from './SuggestedQuestions';
 import { QuickActions } from './QuickActions';
-import { CopilotCapabilities } from '../types';
+// removed
 import { Sparkles, Trash2 } from 'lucide-react';
 
 export const CopilotPanel: React.FC = () => {

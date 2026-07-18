@@ -131,7 +131,10 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         {/* User Profile */}
         <Dropdown
           trigger={
-            <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+            <button
+              aria-label="User profile menu"
+              className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
               <Avatar fallback={user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'} />
             </button>
           }

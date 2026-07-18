@@ -1,7 +1,7 @@
 import { buildAIContext } from './ai-context-builder';
 import { SYSTEM_PROMPT } from '../prompts/system-prompt';
 import { PROMPT_TEMPLATES } from '../prompts';
-import { CopilotCapabilities, ChatMessage } from '../types';
+import { CopilotCapabilities } from '../types';
 import { AIIntent } from './intent-detector';
 
 export interface PromptPayload {

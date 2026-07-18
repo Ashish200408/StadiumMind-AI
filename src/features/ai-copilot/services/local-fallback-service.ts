@@ -14,8 +14,6 @@ export const generateGracefulFallback = (prompt: string): string => {
   const scenario = operationalSnapshot?.currentScenario || 'Normal Match';
 
   const mobilityScore = overallScores?.overallMobilityScore || 0;
-  const sustainabilityScore = overallScores?.overallSustainabilityScore || 0;
-  const accessibilityScore = overallScores?.overallAccessibilityScore || 0;
   const emergencyScore = overallScores?.overallSafetyScore || 0;
   const readinessScore = overallScores?.overallReadinessScore || 0;
 
@@ -32,7 +30,6 @@ export const generateGracefulFallback = (prompt: string): string => {
       ? globalRecommendations[0].action
       : 'Maintain current operational posture.';
 
-  const isReport = prompt.includes('Generate a comprehensive');
   const isSummary = prompt.includes('Provide a strict 2-sentence summary');
 
   if (isSummary) {

@@ -183,7 +183,7 @@ export const callGeminiStream = async (
         let errorData: any = {};
         try {
           errorData = await response.json();
-        } catch (e) {
+        } catch {
           // ignore parsing error
         }
 

@@ -6,7 +6,6 @@ export const compressContext = (
   intent: AIIntent = 'General'
 ): string => {
   // 1. Remove duplicate metrics (relying on overallScores)
-  const scores = data.overallScores;
 
   // 2. Prioritize Critical and High severity alerts
   const criticalHighAlerts = data.globalAlerts.filter(
