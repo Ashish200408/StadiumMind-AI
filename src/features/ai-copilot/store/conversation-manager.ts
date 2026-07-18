@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import { ChatMessage, CopilotCapabilities } from '../types';
-import { buildPrompt } from '../utils/prompt-builder';
+import { buildPromptPayload } from '../utils/prompt-builder';
 import { validatePrompt, AIValidationException } from '../services/guardrail-service';
-import { callGemini } from '../services/gemini-service';
+import { callGeminiStream } from '../services/gemini-service';
 import { parseResponse } from '../utils/response-parser';
+import { detectIntent } from '../utils/intent-detector';
 
 interface ConversationState {
   messages: ChatMessage[];
@@ -31,7 +32,6 @@ export const useConversationManager = create<ConversationState>((set, get) => ({
   sendMessage: async (content: string, capability?: CopilotCapabilities) => {
     const { abortController, messages, responseMode } = get();
 
-    // Abort previous if still loading
     if (abortController) {
       abortController.abort();
     }
@@ -53,16 +53,11 @@ export const useConversationManager = create<ConversationState>((set, get) => ({
     }));
 
     try {
-      const prompt = buildPrompt(content, get().messages, responseMode, capability);
+      const intent = detectIntent(content);
+      const payload = buildPromptPayload(content, responseMode, intent, capability);
 
       // Guardrails execution
-      validatePrompt(prompt, content);
-
-      // Network execution
-      const rawResponse = await callGemini(prompt, newController.signal);
-
-      // Parsing execution
-      const parsedResponse = parseResponse(rawResponse);
+      validatePrompt(payload.userMessage, content);
 
       const modelMessageId = `msg-model-${Date.now()}`;
 
@@ -81,31 +76,28 @@ export const useConversationManager = create<ConversationState>((set, get) => ({
         isStreaming: true,
       }));
 
-      // Simulate streaming (word by word)
-      const words = parsedResponse.split(' ');
-      let currentContent = '';
-
-      for (let i = 0; i < words.length; i++) {
-        if (newController.signal.aborted) {
-          break;
+      // Network execution with true streaming
+      await callGeminiStream(
+        {
+          systemInstruction: payload.systemInstruction,
+          messages: messages, // History
+          userMessage: payload.userMessage,
+        },
+        newController.signal,
+        (chunk: string) => {
+          const parsed = parseResponse(chunk);
+          set((state) => ({
+            messages: state.messages.map((msg) =>
+              msg.id === modelMessageId ? { ...msg, content: parsed } : msg
+            ),
+          }));
         }
-        currentContent += (i > 0 ? ' ' : '') + words[i];
-
-        set((state) => ({
-          messages: state.messages.map((msg) =>
-            msg.id === modelMessageId ? { ...msg, content: currentContent } : msg
-          ),
-        }));
-
-        // Dynamic delay based on word length for natural feel (avg 20-50ms per word)
-        await new Promise((r) => setTimeout(r, 20 + Math.random() * 30));
-      }
+      );
 
       set({ isStreaming: false, abortController: null });
     } catch (error: any) {
       set({ isStreaming: false });
       if (error.name === 'AbortError') {
-        // Silently ignore aborts
         return;
       }
 

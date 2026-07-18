@@ -1,73 +1,134 @@
 import { AILogMetrics } from '../types';
-import { generateGracefulFallback } from './local-fallback-service';
-
-// Simple LRU-ish cache for exact prompts
-const responseCache = new Map<string, { response: string; timestamp: number }>();
-const CACHE_TTL_MS = 60000; // 1 minute
 
 const generateMetricsId = () => `ai-req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-let activeModelCache: string | null = null;
+const PREFERRED_MODELS = [
+  'models/gemini-3.5-flash',
+  'models/gemini-flash-latest',
+  'models/gemini-pro-latest',
+  'models/gemini-3.1-flash-lite',
+  'models/gemini-3.1-pro-preview',
+];
 
-const discoverModel = async (apiKey: string): Promise<string> => {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
-  );
+export interface ActiveModelInfo {
+  name: string;
+  supportedMethods: string[];
+}
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      `Failed to fetch models: HTTP ${response.status}: ${errorData?.error?.message || 'Unknown API Error'}`
+let activeModelCache: ActiveModelInfo | null = null;
+let knownModelsCache: any[] = [];
+export const blacklistedModels = new Set<string>();
+
+const discoverModel = async (apiKey: string): Promise<ActiveModelInfo> => {
+  const envModel = import.meta.env.VITE_GEMINI_MODEL;
+
+  if (knownModelsCache.length === 0) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        const rawModels = data.models || [];
+
+        knownModelsCache = rawModels.filter((m: any) => {
+          if (!m.supportedGenerationMethods?.includes('generateContent')) return false;
+
+          const name = m.name.toLowerCase();
+
+          // Do not filter out explicitly preferred models
+          if (PREFERRED_MODELS.includes(m.name)) return true;
+
+          if (
+            name.includes('preview') ||
+            name.includes('image') ||
+            name.includes('tts') ||
+            name.includes('embedding') ||
+            name.includes('robotics') ||
+            name.includes('computer-use') ||
+            name.includes('omni')
+          ) {
+            return false;
+          }
+          return true;
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to fetch models list, will fallback to default preferred model', e);
+    }
+  }
+
+  const findModelInfo = (modelName: string): ActiveModelInfo | null => {
+    const modelData = knownModelsCache.find((m) => m.name === modelName);
+    if (modelData) {
+      return {
+        name: modelName,
+        supportedMethods: modelData.supportedGenerationMethods || ['generateContent'],
+      };
+    }
+    return null;
+  };
+
+  if (envModel && !blacklistedModels.has(envModel)) {
+    console.log(`Selected Gemini Model (from env): ${envModel}`);
+    return (
+      findModelInfo(envModel) || {
+        name: envModel,
+        supportedMethods: ['generateContent', 'streamGenerateContent'],
+      }
     );
   }
 
-  const data = await response.json();
-  if (!data.models || !Array.isArray(data.models)) {
-    throw new Error(`Invalid models API response: ${JSON.stringify(data)}`);
+  const supportedModelNames = knownModelsCache.map((m: any) => m.name);
+  if (supportedModelNames.length > 0) {
+    console.log('Supported Models:', supportedModelNames.join(', '));
   }
 
-  const supportedModels = data.models.filter(
-    (m: any) =>
-      m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')
+  for (const model of PREFERRED_MODELS) {
+    if (blacklistedModels.has(model)) continue;
+
+    if (supportedModelNames.includes(model)) {
+      const info = findModelInfo(model)!;
+      console.log(`Selected Gemini Model: ${info.name}`);
+      return info;
+    } else if (knownModelsCache.length > 0) {
+      console.log(`Failed Model: ${model}`);
+      console.log(`Reason: Model not found in supported models list.`);
+    }
+  }
+
+  // Fallback to any stable flash model
+  const stableFlash = knownModelsCache.find(
+    (m: any) => m.name.includes('flash') && !blacklistedModels.has(m.name)
   );
-
-  if (supportedModels.length === 0) {
-    throw new Error(
-      `No models supporting generateContent found. API Response: ${JSON.stringify(data)}`
-    );
+  if (stableFlash) {
+    console.log(`Selected Gemini Model (stable fallback): ${stableFlash.name}`);
+    return {
+      name: stableFlash.name,
+      supportedMethods: stableFlash.supportedGenerationMethods || ['generateContent'],
+    };
   }
 
-  // Sort descending by name to prioritize newer versions (e.g. gemini-3.5-flash > gemini-2.5-flash)
-  supportedModels.sort((a: any, b: any) => b.name.localeCompare(a.name));
-
-  const flashModels = supportedModels.filter((m: any) => m.name.includes('flash'));
-
-  if (flashModels.length > 0) {
-    return flashModels[0].name;
-  }
-
-  return supportedModels[0].name;
+  // Final fallback skipping blacklist if possible
+  const defaultFallback =
+    PREFERRED_MODELS.find((m) => !blacklistedModels.has(m)) || PREFERRED_MODELS[0];
+  console.log(`Selected Gemini Model (default fallback): ${defaultFallback}`);
+  return { name: defaultFallback, supportedMethods: ['generateContent', 'streamGenerateContent'] };
 };
 
-export const callGemini = async (prompt: string, signal?: AbortSignal): Promise<string> => {
+export interface GeminiStreamPayload {
+  systemInstruction: string;
+  messages: { role: 'user' | 'model'; content: string }[];
+  userMessage: string;
+}
+
+export const callGeminiStream = async (
+  payload: GeminiStreamPayload,
+  signal: AbortSignal,
+  onChunk: (text: string) => void
+): Promise<string> => {
   const reqTime = new Date().toISOString();
   const startTime = performance.now();
-
-  const cacheKey = btoa(encodeURIComponent(prompt)).substring(0, 250);
-  const cached = responseCache.get(cacheKey);
-
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    logMetrics({
-      id: generateMetricsId(),
-      requestTimestamp: reqTime,
-      responseTimestamp: new Date().toISOString(),
-      processingTimeMs: performance.now() - startTime,
-      promptSizeBytes: new Blob([prompt]).size,
-      responseSizeBytes: new Blob([cached.response]).size,
-      cacheHit: true,
-    });
-    return cached.response;
-  }
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
@@ -76,94 +137,250 @@ export const callGemini = async (prompt: string, signal?: AbortSignal): Promise<
 
   if (!activeModelCache) {
     activeModelCache = await discoverModel(apiKey);
-    console.log(`Selected Gemini Model: ${activeModelCache}`);
   }
 
   let attempt = 0;
   const maxRetries = 3;
+  let endpointMode: 'stream' | 'standard' = activeModelCache.supportedMethods.includes(
+    'streamGenerateContent'
+  )
+    ? 'stream'
+    : 'standard';
 
   while (attempt < maxRetries) {
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/${activeModelCache}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.2, // Low temperature for factual operational reporting
-            },
-          }),
-          signal,
-        }
-      );
+      const contents = payload.messages.map((m) => ({
+        role: m.role,
+        parts: [{ text: m.content }],
+      }));
+      contents.push({ role: 'user', parts: [{ text: payload.userMessage }] });
 
-      if (response.status === 429) {
-        throw new Error('RateLimit');
-      }
+      const requestUrl =
+        endpointMode === 'stream'
+          ? `https://generativelanguage.googleapis.com/v1beta/${activeModelCache!.name}:streamGenerateContent?alt=sse&key=${apiKey}`
+          : `https://generativelanguage.googleapis.com/v1beta/${activeModelCache!.name}:generateContent?key=${apiKey}`;
+
+      console.log('Gemini API Request:', {
+        selectedModel: activeModelCache!.name,
+        supportedMethods: activeModelCache!.supportedMethods,
+        chosenEndpoint: endpointMode,
+      });
+
+      const response = await fetch(requestUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: payload.systemInstruction }] },
+          contents,
+          generationConfig: {
+            temperature: 0.2,
+          },
+        }),
+        signal,
+      });
 
       if (!response.ok) {
-        if (response.status === 400 || response.status === 403) {
-          throw new Error('InvalidKeyOrRequest');
+        let errorData: any = {};
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // ignore parsing error
         }
 
-        // Capture specific error from Google if possible
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          `HTTP ${response.status}: ${errorData?.error?.message || 'Unknown API Error'}`
-        );
+        const errorMessage = errorData?.error?.message || 'Unknown API Error';
+
+        console.error('Gemini API Error:', {
+          selectedModel: activeModelCache!.name,
+          requestUrl: requestUrl.replace(apiKey, 'REDACTED'),
+          httpStatus: response.status,
+          geminiErrorMessage: errorMessage,
+          responseBody: errorData,
+          retryCount: attempt,
+          fallbackUsed: false,
+        });
+
+        if (response.status === 401) {
+          throw new Error('Invalid API Key: Unauthorized.');
+        } else if (response.status === 403) {
+          throw new Error('Permission Denied: Ensure the API key has the correct scope.');
+        } else if (response.status === 404) {
+          const isDeprecated = errorMessage.includes('no longer available to new users');
+
+          if (isDeprecated) {
+            console.log(`Rejected Model: ${activeModelCache!.name}`);
+            console.log(
+              `Reason: Model is deprecated or no longer available to new users (HTTP 404).`
+            );
+            blacklistedModels.add(activeModelCache!.name);
+            activeModelCache = null;
+
+            // Re-discover ignoring the blacklisted model
+            const nextInfo = await discoverModel(apiKey);
+            console.log(`Next fallback model: ${nextInfo.name}`);
+            activeModelCache = nextInfo;
+            endpointMode = nextInfo.supportedMethods.includes('streamGenerateContent')
+              ? 'stream'
+              : 'standard';
+            attempt++;
+            continue;
+          }
+
+          if (endpointMode === 'stream') {
+            console.log(`Endpoint 404 for streamGenerateContent. Falling back to generateContent.`);
+            endpointMode = 'standard';
+            attempt++;
+            continue; // Try again with standard endpoint
+          }
+
+          console.log(`Rejected Model: ${activeModelCache!.name}`);
+          console.log(`Reason: Model not found (HTTP 404).`);
+          blacklistedModels.add(activeModelCache!.name); // Treat any 404 as unavailable to avoid loops
+          activeModelCache = null;
+
+          const nextInfo = await discoverModel(apiKey);
+          console.log(`Next fallback model: ${nextInfo.name}`);
+          activeModelCache = nextInfo;
+          endpointMode = nextInfo.supportedMethods.includes('streamGenerateContent')
+            ? 'stream'
+            : 'standard';
+          attempt++;
+          continue;
+        } else if (response.status === 429) {
+          throw new Error('Gemini API quota exceeded.');
+        } else if (response.status >= 500) {
+          throw new Error(`Internal API Error (HTTP ${response.status}): ${errorMessage}`);
+        } else {
+          throw new Error(`HTTP ${response.status}: ${errorMessage}`);
+        }
       }
 
-      const data = await response.json();
+      let fullText = '';
 
-      if (!data.candidates || data.candidates.length === 0) {
-        throw new Error('No candidates returned from Gemini');
+      if (endpointMode === 'standard') {
+        const data = await response.json();
+        console.log('Gemini API Standard Response:', {
+          selectedModel: activeModelCache!.name,
+          supportedMethods: activeModelCache!.supportedMethods,
+          chosenEndpoint: endpointMode,
+          httpStatus: response.status,
+          responseBody: data,
+        });
+        if (data.candidates && data.candidates.length > 0) {
+          fullText = data.candidates[0].content?.parts?.[0]?.text || '';
+          onChunk(fullText); // Single chunk update
+        } else {
+          throw new Error('No candidates returned from Gemini');
+        }
+      } else {
+        if (!response.body) {
+          throw new Error('No response body from stream');
+        }
+
+        console.log('Gemini API Stream Response:', {
+          selectedModel: activeModelCache!.name,
+          supportedMethods: activeModelCache!.supportedMethods,
+          chosenEndpoint: endpointMode,
+          httpStatus: response.status,
+          responseBody: '<streaming>',
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.replace('data: ', '').trim();
+              if (!dataStr) continue;
+              try {
+                const data = JSON.parse(dataStr);
+                if (data.candidates && data.candidates.length > 0) {
+                  const textChunk = data.candidates[0].content?.parts?.[0]?.text || '';
+                  fullText += textChunk;
+                  onChunk(fullText);
+                }
+              } catch (e) {
+                console.warn('Error parsing SSE chunk:', e);
+              }
+            }
+          }
+        }
       }
-
-      const text = data.candidates[0].content.parts[0].text;
-
-      responseCache.set(cacheKey, { response: text, timestamp: Date.now() });
 
       logMetrics({
         id: generateMetricsId(),
         requestTimestamp: reqTime,
         responseTimestamp: new Date().toISOString(),
         processingTimeMs: performance.now() - startTime,
-        promptSizeBytes: new Blob([prompt]).size,
-        responseSizeBytes: new Blob([text]).size,
+        promptSizeBytes: new Blob([JSON.stringify(contents)]).size,
+        responseSizeBytes: new Blob([fullText]).size,
         cacheHit: false,
       });
 
-      return text;
+      return fullText;
     } catch (error: any) {
       if (error.name === 'AbortError') {
         throw error;
       }
 
-      if (error.message === 'InvalidKeyOrRequest') {
-        logErrorMetrics(reqTime, startTime, prompt, 'InvalidKeyOrRequest');
-        throw new Error('Invalid or expired Gemini API key. Please contact system administrator.');
+      if (
+        error.message.includes('Invalid API Key') ||
+        error.message.includes('Permission Denied') ||
+        error.message.includes('Model Not Found') ||
+        error.message.includes('Gemini API quota exceeded') ||
+        error.message.includes('Internal API Error') ||
+        error.message.includes('HTTP ')
+      ) {
+        logErrorMetrics(reqTime, startTime, payload.userMessage, error.message);
+        throw error;
       }
 
-      if (error.message === 'RateLimit') {
-        logErrorMetrics(reqTime, startTime, prompt, 'RateLimit');
-        return generateGracefulFallback(prompt);
-      }
+      console.error('Gemini API Network/Generic Error:', {
+        selectedModel: activeModelCache?.name,
+        errorMessage: error.message,
+        retryCount: attempt,
+        fallbackUsed: false,
+      });
 
       attempt++;
 
       if (attempt >= maxRetries) {
-        logErrorMetrics(reqTime, startTime, prompt, error.message);
-        return generateGracefulFallback(prompt);
+        logErrorMetrics(reqTime, startTime, payload.userMessage, error.message);
+        throw new Error(`Network Failure or Unexpected Error: ${error.message}`);
       }
 
-      // Exponential backoff
       await new Promise((res) => setTimeout(res, Math.pow(2, attempt) * 1000));
     }
   }
 
   throw new Error('Unexpected execution path in GeminiService');
+};
+
+export const callGemini = async (prompt: string, signal?: AbortSignal): Promise<string> => {
+  const payload: GeminiStreamPayload = {
+    systemInstruction: 'You are an intelligent operational assistant.',
+    messages: [],
+    userMessage: prompt,
+  };
+
+  // Create a dummy signal if none provided
+  const abortController = new AbortController();
+  const activeSignal = signal || abortController.signal;
+
+  let result = '';
+  await callGeminiStream(payload, activeSignal, (chunk) => {
+    result = chunk; // callGeminiStream accumulates the full text and passes it to onChunk
+  });
+
+  return result;
 };
 
 import { logger } from '../../../utils/logger';

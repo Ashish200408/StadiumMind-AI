@@ -6,10 +6,9 @@ export class AIValidationException extends Error {
 }
 
 export const validatePrompt = (prompt: string, userQuery: string) => {
-  // 1. Ensure context is present (not empty or just "No operational data")
-  if (!prompt.includes('scores') && prompt.includes('No operational data available')) {
-    throw new AIValidationException("I don't have enough operational data to answer confidently.");
-  }
+  // 1. Ensure context is present ONLY IF it's operational. We can skip this check
+  // because the new intent detector handles selective context injection.
+  // We'll leave the prompt injection check active.
 
   // 2. Detect and block prompt injection attempts (basic heuristic)
   const injectionKeywords = [
@@ -30,15 +29,7 @@ export const validatePrompt = (prompt: string, userQuery: string) => {
     }
   }
 
-  // 3. Prevent unsupported requests outside stadium operations (basic heuristic)
-  const offTopicKeywords = ['write a poem', 'tell me a joke', 'recipe', 'code a', 'how to hack'];
-  for (const keyword of offTopicKeywords) {
-    if (lowerQuery.includes(keyword)) {
-      throw new AIValidationException(
-        'I am strictly an Operational Decision Support Assistant for the stadium. I cannot assist with that request.'
-      );
-    }
-  }
+  // 3. Removed off-topic check to allow General Intent (e.g. jokes, trivia, coding)
 
   return true;
 };
