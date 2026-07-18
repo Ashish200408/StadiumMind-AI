@@ -4,12 +4,15 @@ import { Sidebar } from '../components/dashboard/sidebar';
 import { Topbar } from '../components/dashboard/topbar';
 import { Breadcrumb } from '../components/layout/breadcrumb';
 import { Drawer } from '../components/ui/drawer';
+import { GuidedOnboarding } from '../components/dashboard/GuidedOnboarding';
 
 export function DashboardLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0a0f1c] to-black font-sans text-slate-100">
+      <GuidedOnboarding />
+
       {/* Desktop Sidebar */}
       <div className="hidden lg:block lg:flex-shrink-0 z-20">
         <Sidebar />

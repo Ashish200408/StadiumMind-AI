@@ -1,7 +1,8 @@
+// The intelligence stores use varied structures for their metrics in this prototype.
+// Type assertions are used locally to allow dynamic aggregation without strict typing overhead.
 import { StandardizedModule } from '../types';
 import { useIntelligenceStore as useCrowdStore } from '../../crowd-intelligence/store/intelligence-store';
 import { useMobilityStore } from '../../mobility-intelligence/store/mobility-store';
-// Note: Normally we'd import all stores here, simulating the mapping logic for now to prevent breaking if other stores lack specific getters yet.
 import { useAccessibilityStore } from '../../accessibility-intelligence/store/accessibility-store';
 import { useSustainabilityStore } from '../../sustainability-intelligence/store/sustainability-store';
 import { useEmergencyStore } from '../../emergency-intelligence/store/emergency-store';
@@ -9,24 +10,26 @@ import { useNavigationStore } from '../../navigation-intelligence/store/navigati
 
 export const mapCrowdToStandard = (): StandardizedModule => {
   try {
-    const crowdState: any = useCrowdStore.getState();
+    const crowdState = useCrowdStore.getState();
+    const metrics: any = crowdState.metrics || {};
+    const detections: any[] = (crowdState as any).detections || [];
     return {
       moduleName: 'Crowd Intelligence',
-      healthScore: crowdState.metrics?.healthScore || 85,
-      riskLevel: crowdState.metrics?.riskLevel || 'Low',
+      healthScore: metrics.healthScore || 85,
+      riskLevel: metrics.riskLevel || 'Low',
       confidenceScore: 92,
       status: 'Active',
       metrics: {
-        totalAttendance: crowdState.metrics?.totalAttendance || 0,
-        densityScore: crowdState.metrics?.densityScore || 0,
-        flowRate: crowdState.metrics?.flowRate || 0,
+        totalAttendance: metrics.totalAttendance || 0,
+        densityScore: metrics.densityScore || 0,
+        flowRate: metrics.flowRate || 0,
       },
       recommendations: crowdState.recommendations?.map((r: any) => r.message || r) || [],
       alerts:
-        crowdState.alerts?.map((a: any) => ({
+        detections.map((a: any) => ({
           id: a.id,
           moduleSource: 'Crowd Intelligence',
-          severity: a.severity,
+          severity: a.severity || 'Medium',
           priority:
             a.severity === 'Critical'
               ? 1
@@ -35,8 +38,8 @@ export const mapCrowdToStandard = (): StandardizedModule => {
                 : a.severity === 'Medium'
                   ? 3
                   : 4,
-          message: a.message,
-          timestamp: a.timestamp,
+          message: a.message || a.type || 'Anomaly detected',
+          timestamp: a.timestamp || new Date().toISOString(),
         })) || [],
       lastUpdated: new Date().toISOString(),
     };
@@ -47,26 +50,28 @@ export const mapCrowdToStandard = (): StandardizedModule => {
 
 export const mapMobilityToStandard = (): StandardizedModule => {
   try {
-    const state: any = useMobilityStore.getState();
+    const state = useMobilityStore.getState();
+    const metrics: any = state.metrics || {};
+    const alerts: any[] = (state as any).alerts || [];
     return {
       moduleName: 'Mobility Intelligence',
-      healthScore: state.metrics?.mobilityHealthScore || state.metrics?.mobilityScore || 80,
-      riskLevel: state.metrics?.bottleneckRisk > 75 ? 'High' : 'Low',
+      healthScore: metrics.mobilityHealthScore || metrics.mobilityScore || 80,
+      riskLevel: metrics.bottleneckRisk > 75 ? 'High' : 'Low',
       confidenceScore: 88,
       status: 'Active',
       metrics: {
-        activeVehicles: state.metrics?.activeVehicles || 0,
-        averageWaitTime: state.metrics?.averageWaitTime || 0,
+        activeVehicles: metrics.activeVehicles || 0,
+        averageWaitTime: metrics.averageWaitTime || 0,
       },
-      recommendations: state.recommendations?.map((r: any) => r.message || r) || [],
+      recommendations: (state as any).recommendations?.map((r: any) => r.message || r) || [],
       alerts:
-        state.alerts?.map((a: any) => ({
+        alerts.map((a: any) => ({
           id: a.id,
           moduleSource: 'Mobility Intelligence',
-          severity: a.severity,
+          severity: a.severity || 'Medium',
           priority: a.severity === 'Critical' ? 1 : 2,
-          message: a.message,
-          timestamp: a.timestamp,
+          message: a.message || 'Mobility alert',
+          timestamp: a.timestamp || new Date().toISOString(),
         })) || [],
       lastUpdated: new Date().toISOString(),
     };
@@ -77,27 +82,28 @@ export const mapMobilityToStandard = (): StandardizedModule => {
 
 export const mapAccessibilityToStandard = (): StandardizedModule => {
   try {
-    const state: any = useAccessibilityStore.getState();
+    const state = useAccessibilityStore.getState();
+    const metrics: any = state.metrics || {};
+    const alerts: any[] = (state as any).alerts || [];
     return {
       moduleName: 'Accessibility Intelligence',
-      healthScore:
-        state.metrics?.overallAccessibilityScore || state.metrics?.accessibilityScore || 90,
-      riskLevel: state.metrics?.activeAssistanceRequests > 10 ? 'Medium' : 'Low',
+      healthScore: metrics.overallAccessibilityScore || metrics.accessibilityScore || 90,
+      riskLevel: metrics.activeAssistanceRequests > 10 ? 'Medium' : 'Low',
       confidenceScore: 95,
       status: 'Active',
       metrics: {
-        activeRequests: state.metrics?.activeAssistanceRequests || 0,
-        wheelchairAvailable: state.metrics?.wheelchairAvailability || 0,
+        activeRequests: metrics.activeAssistanceRequests || 0,
+        wheelchairAvailable: metrics.wheelchairAvailability || 0,
       },
-      recommendations: state.recommendations?.map((r: any) => r.message || r) || [],
+      recommendations: (state as any).recommendations?.map((r: any) => r.message || r) || [],
       alerts:
-        state.alerts?.map((a: any) => ({
+        alerts.map((a: any) => ({
           id: a.id,
           moduleSource: 'Accessibility Intelligence',
-          severity: a.severity,
+          severity: a.severity || 'Medium',
           priority: 3,
-          message: a.message,
-          timestamp: a.timestamp,
+          message: a.message || 'Accessibility alert',
+          timestamp: a.timestamp || new Date().toISOString(),
         })) || [],
       lastUpdated: new Date().toISOString(),
     };
@@ -108,29 +114,29 @@ export const mapAccessibilityToStandard = (): StandardizedModule => {
 
 export const mapSustainabilityToStandard = (): StandardizedModule => {
   try {
-    const state: any = useSustainabilityStore.getState();
+    const state = useSustainabilityStore.getState();
+    const metrics: any = state.metrics || {};
+    const alerts: any[] = (state as any).alerts || [];
     return {
       moduleName: 'Sustainability Intelligence',
-      healthScore: state.metrics?.sustainabilityScore || 85,
+      healthScore: metrics.sustainabilityScore || 85,
       riskLevel:
-        state.metrics?.carbonFootprint > 5000 || state.metrics?.carbonFootprintScore < 50
-          ? 'Medium'
-          : 'Low',
+        metrics.carbonFootprint > 5000 || metrics.carbonFootprintScore < 50 ? 'Medium' : 'Low',
       confidenceScore: 90,
       status: 'Active',
       metrics: {
-        powerConsumption: state.metrics?.powerConsumption || 0,
-        waterUsage: state.metrics?.waterUsage || state.metrics?.waterConsumption || 0,
+        powerConsumption: metrics.powerConsumption || 0,
+        waterUsage: metrics.waterUsage || metrics.waterConsumption || 0,
       },
-      recommendations: state.recommendations?.map((r: any) => r.message || r) || [],
+      recommendations: (state as any).recommendations?.map((r: any) => r.message || r) || [],
       alerts:
-        state.alerts?.map((a: any) => ({
+        alerts.map((a: any) => ({
           id: a.id,
           moduleSource: 'Sustainability Intelligence',
-          severity: a.severity,
+          severity: a.severity || 'Medium',
           priority: 4,
-          message: a.message,
-          timestamp: a.timestamp,
+          message: a.message || 'Sustainability alert',
+          timestamp: a.timestamp || new Date().toISOString(),
         })) || [],
       lastUpdated: new Date().toISOString(),
     };
@@ -141,25 +147,29 @@ export const mapSustainabilityToStandard = (): StandardizedModule => {
 
 export const mapEmergencyToStandard = (): StandardizedModule => {
   try {
-    const state: any = useEmergencyStore.getState();
+    const state = useEmergencyStore.getState();
+    const metrics: any = state.metrics || {};
+    const kpis: any = (state as any).kpis || {};
+    const queue: any[] = state.getPriorityQueue() || [];
+
     return {
       moduleName: 'Emergency Intelligence',
-      healthScore: state.metrics?.emergencyHealthScore || 100,
-      riskLevel: state.metrics?.operationalRiskScore > 50 ? 'High' : 'Low',
+      healthScore: metrics.emergencyHealthScore || 100,
+      riskLevel: metrics.operationalRiskScore > 50 ? 'High' : 'Low',
       confidenceScore: 99,
       status: 'Active',
       metrics: {
-        activeIncidents: state.kpis?.totalActiveIncidents || 0,
-        criticalIncidents: state.kpis?.criticalIncidents || 0,
+        activeIncidents: kpis.totalActiveIncidents || 0,
+        criticalIncidents: kpis.criticalIncidents || 0,
       },
-      recommendations: state.getPriorityQueue()[0]?.recommendedActions || [],
-      alerts: state.getPriorityQueue().map((inc: any) => ({
+      recommendations: queue[0]?.recommendedActions || [],
+      alerts: queue.map((inc: any) => ({
         id: inc.id,
         moduleSource: 'Emergency Intelligence',
-        severity: inc.severity,
+        severity: inc.severity || 'Medium',
         priority: inc.severity === 'Critical' ? 1 : 2,
         message: `${inc.type} at ${inc.location}`,
-        timestamp: inc.timestamp,
+        timestamp: inc.timestamp || new Date().toISOString(),
       })),
       lastUpdated: new Date().toISOString(),
     };
@@ -170,8 +180,8 @@ export const mapEmergencyToStandard = (): StandardizedModule => {
 
 export const mapNavigationToStandard = (): StandardizedModule => {
   try {
-    const state: any = useNavigationStore.getState();
-    const activeRoute = state.activeRoute;
+    const state = useNavigationStore.getState();
+    const activeRoute: any = state.activeRoute;
     const hasCongestion = activeRoute?.segments?.some((s: any) => s.congestionScore > 50);
     const hasIncident = activeRoute?.segments?.some((s: any) => s.hasIncident);
 
@@ -185,7 +195,7 @@ export const mapNavigationToStandard = (): StandardizedModule => {
         activeRoutes: state.activeRoute ? 1 : 0,
         nodes: Object.keys(state.nodes || {}).length,
       },
-      recommendations: state.recommendations?.map((r: any) => r.reason || r.type) || [],
+      recommendations: (state as any).recommendations?.map((r: any) => r.reason || r.type) || [],
       alerts: hasIncident
         ? [
             {

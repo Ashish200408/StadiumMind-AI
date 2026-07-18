@@ -17,13 +17,21 @@ interface ExecutiveSummaryCardProps {
 }
 
 export const ExecutiveSummaryCard: React.FC<ExecutiveSummaryCardProps> = ({ scores }) => {
+  const safeRound = (val?: number): string | number => {
+    if (typeof val !== 'number' || !Number.isFinite(val) || Number.isNaN(val)) return '--';
+    return Math.round(val);
+  };
+
   const getScoreColor = (score: number) => {
+    if (!Number.isFinite(score)) return 'text-slate-400 bg-slate-500/10 border-slate-500/30';
     if (score >= 80) return 'text-green-400 bg-green-500/10 border-green-500/30';
     if (score >= 60) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
     return 'text-red-400 bg-red-500/10 border-red-500/30';
   };
 
   const getHealthColor = (score: number) => {
+    if (!Number.isFinite(score))
+      return 'text-slate-400 border-slate-500/50 shadow-[0_0_20px_rgba(148,163,184,0.3)] bg-slate-500/10';
     if (score >= 80)
       return 'text-green-400 border-green-500/50 shadow-[0_0_20px_rgba(74,222,128,0.3)] bg-green-500/10';
     if (score >= 60)
@@ -32,10 +40,15 @@ export const ExecutiveSummaryCard: React.FC<ExecutiveSummaryCardProps> = ({ scor
   };
 
   const metrics = [
-    { label: 'Readiness', value: scores.overallReadinessScore, icon: Target, trend: 'up' },
-    { label: 'Safety', value: scores.overallSafetyScore, icon: ShieldCheck, trend: 'up' },
-    { label: 'Mobility', value: scores.overallMobilityScore, icon: Bus, trend: 'down' },
-    { label: 'Sustainability', value: scores.overallSustainabilityScore, icon: Leaf, trend: 'up' },
+    { label: 'Readiness', value: scores?.overallReadinessScore ?? 0, icon: Target, trend: 'up' },
+    { label: 'Safety', value: scores?.overallSafetyScore ?? 0, icon: ShieldCheck, trend: 'up' },
+    { label: 'Mobility', value: scores?.overallMobilityScore ?? 0, icon: Bus, trend: 'down' },
+    {
+      label: 'Sustainability',
+      value: scores?.overallSustainabilityScore ?? 0,
+      icon: Leaf,
+      trend: 'up',
+    },
   ];
 
   return (
@@ -55,7 +68,7 @@ export const ExecutiveSummaryCard: React.FC<ExecutiveSummaryCardProps> = ({ scor
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-          className={`px-8 py-4 rounded-2xl border-2 flex items-center justify-center gap-6 ${getHealthColor(scores.overallStadiumHealth)} relative overflow-hidden`}
+          className={`px-8 py-4 rounded-2xl border-2 flex items-center justify-center gap-6 ${getHealthColor(scores?.overallStadiumHealth ?? 0)} relative overflow-hidden`}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 translate-x-[-100%] animate-[shimmer_2s_infinite]" />
 
@@ -65,12 +78,12 @@ export const ExecutiveSummaryCard: React.FC<ExecutiveSummaryCardProps> = ({ scor
             </span>
             <div className="flex items-baseline gap-1">
               <motion.span
-                key={scores.overallStadiumHealth}
+                key={scores?.overallStadiumHealth ?? 0}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-5xl font-black tracking-tighter"
               >
-                {Math.round(scores.overallStadiumHealth)}
+                {safeRound(scores?.overallStadiumHealth)}
               </motion.span>
               <span className="text-2xl font-bold opacity-50">%</span>
             </div>
@@ -114,7 +127,7 @@ export const ExecutiveSummaryCard: React.FC<ExecutiveSummaryCardProps> = ({ scor
                     animate={{ scale: 1 }}
                     className="text-4xl font-black"
                   >
-                    {Math.round(kpi.value)}
+                    {safeRound(kpi.value)}
                   </motion.span>
                   <span className="text-lg font-bold opacity-50">/100</span>
                 </div>
@@ -135,13 +148,15 @@ export const ExecutiveSummaryCard: React.FC<ExecutiveSummaryCardProps> = ({ scor
           <div className="flex-1 h-3 bg-slate-800 rounded-full overflow-hidden border border-white/5 shadow-inner relative">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${scores.overallOperationalRisk}%` }}
+              animate={{
+                width: `${Number.isFinite(scores?.overallOperationalRisk) ? scores.overallOperationalRisk : 0}%`,
+              }}
               transition={{ duration: 1, ease: 'easeOut' }}
-              className={`absolute top-0 left-0 h-full ${scores.overallOperationalRisk > 60 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]' : scores.overallOperationalRisk > 30 ? 'bg-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.8)]' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]'}`}
+              className={`absolute top-0 left-0 h-full ${(scores?.overallOperationalRisk ?? 0) > 60 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]' : (scores?.overallOperationalRisk ?? 0) > 30 ? 'bg-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.8)]' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]'}`}
             />
           </div>
           <span className="text-lg font-black text-white min-w-[3rem] text-right">
-            {Math.round(scores.overallOperationalRisk)}%
+            {safeRound(scores?.overallOperationalRisk)}%
           </span>
         </div>
       </div>

@@ -15,7 +15,9 @@ export const ResponseRecommendationPanel: React.FC = () => {
 
       {!activeIncident ? (
         <div className="text-center text-gray-500 py-8">
-          No active incidents requiring response.
+          <span className="text-cyan-400 font-medium">
+            Launch Demo Mode to simulate a live match.
+          </span>
         </div>
       ) : (
         <div>

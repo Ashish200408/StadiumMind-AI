@@ -53,7 +53,13 @@ export const OperationalComparisonPanel: React.FC<OperationalComparisonPanelProp
               TrendIcon = ArrowDownRight;
             }
 
-            const diff = Math.abs(comp.currentValue - comp.previousValue).toFixed(1);
+            const isCurrentValid = Number.isFinite(comp.currentValue);
+            const isPreviousValid = Number.isFinite(comp.previousValue);
+            const canComputeDiff = isCurrentValid && isPreviousValid;
+            const diff = canComputeDiff
+              ? Math.abs(comp.currentValue - comp.previousValue).toFixed(1)
+              : '--';
+            const displayValue = isCurrentValid ? Math.round(comp.currentValue) : '--';
 
             return (
               <div
@@ -64,9 +70,7 @@ export const OperationalComparisonPanel: React.FC<OperationalComparisonPanelProp
                   {comp.metric}
                 </span>
                 <div className="flex items-end gap-3">
-                  <span className="text-3xl font-black text-white">
-                    {Math.round(comp.currentValue)}
-                  </span>
+                  <span className="text-3xl font-black text-white">{displayValue}</span>
                   {comp.trend !== 'Stable' && (
                     <span
                       className={`px-2 py-1 rounded-md text-[10px] font-black tracking-wider flex items-center gap-1 border mb-1.5 ${trendColor}`}

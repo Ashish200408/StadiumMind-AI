@@ -18,6 +18,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
+import { DemoScenarioSelector } from '../../features/executive-intelligence/components/DemoScenarioSelector';
 
 interface TopbarProps {
   onMenuClick?: () => void;
@@ -63,6 +64,11 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4">
+        {/* Global Demo Activation */}
+        <div className="hidden md:block">
+          <DemoScenarioSelector />
+        </div>
+
         {/* AI Copilot Quick Action */}
         <Button
           variant="ghost"

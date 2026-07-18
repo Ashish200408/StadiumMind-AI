@@ -23,7 +23,9 @@ export const ActiveIncidentsPanel: React.FC = () => {
       {priorityQueue.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-slate-500 p-8 text-center bg-black/20 rounded-2xl border border-white/5">
           <ShieldAlert className="w-12 h-12 mb-3 opacity-20" />
-          <span className="font-medium">No active incidents.</span>
+          <span className="font-medium text-cyan-400">
+            Launch Demo Mode above to simulate a live FIFA World Cup stadium environment.
+          </span>
         </div>
       ) : (
         <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar pr-2 flex-1">

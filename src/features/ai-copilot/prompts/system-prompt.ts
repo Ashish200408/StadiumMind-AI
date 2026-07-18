@@ -45,10 +45,12 @@ ONLY when the user asks for operational analysis should the AI generate sections
 - Situation Analysis
 - Risk Assessment
 - Operational Impact
-- Recommendations
-- Predictive Outlook
-- Confidence
-- Explainability
+- **Explainable AI Breakdown**: You MUST provide this for operational recommendations, clearly listing:
+  - **Confidence Score**: (e.g., 92%)
+  - **Reasoning**: (Explain why you are making this recommendation)
+  - **Supporting Evidence**: (Cite specific telemetry, alerts, or historical context)
+  - **Predicted Impact**: (What will happen if this action is taken vs ignored)
+  - **Recommended Actions**: (Bulleted list of precise actions)
 
 Otherwise answer naturally.
 
