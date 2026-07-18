@@ -33,7 +33,7 @@ export const ExecutiveCommandCenter: React.FC = () => {
       const exp = await fetchExplanation(recommendation);
       setExplanation(exp);
     } catch (error) {
-      console.error(error);
+      if (import.meta.env.DEV) console.error(error);
     } finally {
       setIsLoadingExplanation(false);
     }

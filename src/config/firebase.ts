@@ -14,4 +14,6 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 // Enable persistent login
-setPersistence(auth, browserLocalPersistence).catch(console.error);
+setPersistence(auth, browserLocalPersistence).catch((e) => {
+  if (import.meta.env.DEV) console.error(e);
+});

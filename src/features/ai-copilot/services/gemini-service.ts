@@ -56,7 +56,8 @@ const discoverModel = async (apiKey: string): Promise<ActiveModelInfo> => {
         );
       }
     } catch (e) {
-      console.warn('Failed to fetch models list, will fallback to default preferred model', e);
+      if (import.meta.env.DEV)
+        console.warn('Failed to fetch models list, will fallback to default preferred model', e);
     }
   }
 
@@ -72,7 +73,7 @@ const discoverModel = async (apiKey: string): Promise<ActiveModelInfo> => {
   };
 
   if (envModel && !blacklistedModels.has(envModel)) {
-    console.log(`Selected Gemini Model (from env): ${envModel}`);
+    if (import.meta.env.DEV) console.log(`Selected Gemini Model (from env): ${envModel}`);
     return (
       findModelInfo(envModel) || {
         name: envModel,
@@ -83,7 +84,7 @@ const discoverModel = async (apiKey: string): Promise<ActiveModelInfo> => {
 
   const supportedModelNames = knownModelsCache.map((m) => m.name);
   if (supportedModelNames.length > 0) {
-    console.log('Supported Models:', supportedModelNames.join(', '));
+    if (import.meta.env.DEV) console.log('Supported Models:', supportedModelNames.join(', '));
   }
 
   for (const model of PREFERRED_MODELS) {
@@ -91,11 +92,13 @@ const discoverModel = async (apiKey: string): Promise<ActiveModelInfo> => {
 
     if (supportedModelNames.includes(model)) {
       const info = findModelInfo(model)!;
-      console.log(`Selected Gemini Model: ${info.name}`);
+      if (import.meta.env.DEV) console.log(`Selected Gemini Model: ${info.name}`);
       return info;
-    } else if (knownModelsCache.length > 0) {
-      console.log(`Failed Model: ${model}`);
-      console.log(`Reason: Model not found in supported models list.`);
+    } else {
+      if (import.meta.env.DEV) {
+        console.log(`Failed Model: ${model}`);
+        console.log(`Reason: Model not found in supported models list.`);
+      }
     }
   }
 
@@ -183,15 +186,13 @@ export const callGeminiStream = async (
 
         const errorMessage = errorData?.error?.message || 'Unknown API Error';
 
-        console.error('Gemini API Error:', {
-          selectedModel: activeModelCache!.name,
-          requestUrl: requestUrl.replace(apiKey, 'REDACTED'),
-          httpStatus: response.status,
-          geminiErrorMessage: errorMessage,
-          responseBody: errorData,
-          retryCount: attempt,
-          fallbackUsed: false,
-        });
+        if (import.meta.env.DEV) {
+          console.error('Gemini API Error:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData,
+          });
+        }
 
         if (response.status === 401) {
           throw new Error('Invalid API Key: Unauthorized.');
@@ -278,7 +279,7 @@ export const callGeminiStream = async (
                     fullText += textChunk;
                     onChunk(fullText);
                   }
-                } catch (e) {
+                } catch {
                   // ignore JSON parse errors in chunk stream
                 }
               }
@@ -318,12 +319,14 @@ export const callGeminiStream = async (
           throw error;
         }
 
-        console.error('Gemini API Network/Generic Error:', {
-          selectedModel: activeModelCache?.name,
-          errorMessage: error.message,
-          retryCount: attempt,
-          fallbackUsed: false,
-        });
+        if (import.meta.env.DEV) {
+          console.error('Gemini API Network/Generic Error:', {
+            selectedModel: activeModelCache?.name || 'unknown',
+            errorMessage: error instanceof Error ? error.message : String(error),
+            retryCount: attempt,
+            fallbackUsed: false,
+          });
+        }
       }
 
       attempt++;

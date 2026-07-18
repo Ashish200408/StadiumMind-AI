@@ -59,7 +59,7 @@ export const useExecutiveIntelligence = () => {
         addReportToHistory(report);
         return report;
       } catch (error) {
-        console.error('Report generation failed', error);
+        if (import.meta.env.DEV) console.error('Report generation failed', error);
         return null;
       } finally {
         setIsGeneratingReport(false);
@@ -105,7 +105,7 @@ export const useExecutiveIntelligence = () => {
       const insights = await getDecisionSupportInsights(data);
       setDecisionSupportData(insights);
     } catch (error) {
-      console.error('Failed to load decision support', error);
+      if (import.meta.env.DEV) console.error('Failed to load decision support', error);
     } finally {
       setIsLoadingDecisionData(false);
     }

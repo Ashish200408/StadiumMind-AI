@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { buildAIContext } from './ai-context-builder';
-import { useIntelligenceCoreStore } from '../../intelligence-core/store/intelligence-core-store';
 
 vi.mock('../../intelligence-core/store/intelligence-core-store', () => ({
   useIntelligenceCoreStore: {

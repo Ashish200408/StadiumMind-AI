@@ -91,7 +91,7 @@ export const getAIExplanation = async (
       .trim();
     return JSON.parse(cleanedJson) as AIExplanation;
   } catch (error) {
-    console.error('Failed to parse AI Explanation:', error);
+    if (import.meta.env.DEV) console.error('Failed to parse AI Explanation:', error);
     return {
       recommendation,
       reasoning: 'Explanation generation failed. Using deterministic fallback.',
@@ -131,7 +131,7 @@ export const getDecisionSupportInsights = async (
       .trim();
     return JSON.parse(cleanedJson) as DecisionSupportData;
   } catch (error) {
-    console.error('Failed to parse Decision Support Data:', error);
+    if (import.meta.env.DEV) console.error('Failed to parse Decision Support Data:', error);
     return {
       topRecommendedActions: [],
       highestPriorityIncidents: [],
