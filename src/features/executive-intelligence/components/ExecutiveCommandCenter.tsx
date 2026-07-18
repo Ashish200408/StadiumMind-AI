@@ -93,7 +93,7 @@ export const ExecutiveCommandCenter: React.FC = () => {
                 <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
                   Current Match
                 </p>
-                <p className="text-sm font-bold text-white">Final: ARG vs FRA</p>
+                <p className="text-sm font-bold text-white">Final: AGR vs SPA</p>
               </div>
             </div>
             <div className="w-px h-10 bg-white/10 hidden sm:block"></div>
